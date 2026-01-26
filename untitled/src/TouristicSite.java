@@ -1,8 +1,10 @@
 public class TouristicSite extends Site{
-    public TouristicSite(Point coordinates, int opening){
+    int score;
+    public TouristicSite(Point coordinates,int score, double opening, double closing){
         this.coordinates = coordinates;
-        this.openingTime = 0;
-        this.closingTime = 45;
+        this.score = score;
+        this.openingTime = opening;
+        this.closingTime = closing;
     }
 
 

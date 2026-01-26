@@ -1,7 +1,7 @@
 public class Site {
     Point coordinates;
-    int openingTime;
-    int closingTime;
+    double openingTime;
+    double closingTime;
 
     public Point getCoordinates() {
         return coordinates;

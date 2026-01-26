@@ -1,10 +1,22 @@
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-void main() {
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    System.out.println("hello world");
-    Hotel ritz = new Hotel(new Point(1,3));
-    System.out.println(ritz.coordinates.x);
+import java.io.*;
 
+
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+
+        //normalement si tu as la même structure de dossier que moi ça devrait marcher
+        String doc = "untitled/instances/Inst1.txt";
+        Instance.readFile(doc);
+
+        Instance.getTouristicSites().forEach(site -> {
+
+            System.out.println("x: "+ site.coordinates.x + " y: " + site.coordinates.y);
+            System.out.println("score: "+ site.score);
+        });
+
+    }
 }

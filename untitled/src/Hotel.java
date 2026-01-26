@@ -1,10 +1,10 @@
 public class Hotel extends Site{
 
 
-    public Hotel(Point coordinates){
+    public Hotel(Point coordinates, double closing){
         this.coordinates = coordinates;
         this.openingTime = 0;
-        this.closingTime = 45;
+        this.closingTime = closing;
     }
 
 
