@@ -9,4 +9,5 @@ public class Hotel extends Site{
 
 
 
+
 }

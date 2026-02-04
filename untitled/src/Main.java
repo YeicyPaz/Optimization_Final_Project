@@ -12,11 +12,13 @@ public class Main {
         String doc = "untitled/instances/Inst1.txt";
         Instance.readFile(doc);
 
-        Instance.getTouristicSites().forEach(site -> {
+        Instance.getHotels().forEach(site -> {
 
             System.out.println("x: "+ site.coordinates.x + " y: " + site.coordinates.y);
-            System.out.println("score: "+ site.score);
+            //System.out.println("score: "+ site.score);
+
         });
 
+        System.out.println("Distance max total: " + Instance.tMax + ", Distance par jour: "+ java.util.Arrays.toString(Instance.tD));
     }
 }

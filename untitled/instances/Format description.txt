@@ -13,6 +13,9 @@ The second line contains:
 The third line contains:
 
 	Td	= trip length for each trip d
+	//yo voy hacer esto para arriba
+
+	//klaudia ya a hecho esto para abajo
 
 The remaining lines contain data about location, score, service time and time windows:
 

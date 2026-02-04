@@ -3,13 +3,13 @@ import java.util.*;
 
 public class Instance {
 
-    int n;
-    int h;
-    int d;
-    int tMax;
-    int tD;
+    static int n;          // Vértices
+    static int h;          // extra Hotels
+    static int d;          // Days
+    static double tMax;
+    static double[] tD;
 
-    ArrayList<Day> days;
+
 
     static ArrayList<Hotel> hotels;
     static ArrayList<TouristicSite> touristicSites;
@@ -18,6 +18,43 @@ public class Instance {
         touristicSites = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(filePath));
         String line;
+
+        //premier line
+
+        if ((line = br.readLine()) != null) {
+            line = line.trim();
+
+            String[] parts =line.split("\\s+");
+
+            n = Integer.parseInt(parts[0]); //nombre des nodes(vertices)
+            h = Integer.parseInt(parts[1]); //les hotels du voyage sans l'hotel de debut et fin qui sont fixes
+            d = Integer.parseInt(parts[2]); // jours de voyage(numbers of trips)
+
+            System.out.println("Nodes: " + n + ", Hotels : " + h + ", Days: " + d);
+
+        }
+
+      //tmax
+        if ((line = br.readLine()) != null){
+            tMax = Double.parseDouble(line.trim());
+        }
+
+     //troisieme line
+
+        if ((line = br.readLine()) != null){
+            line=line.trim();
+            String[] parts =line.split("\\s+");
+
+            tD = new double[d];
+
+            for (int i = 0; i < d; i++) {
+                tD[i] = Double.parseDouble(parts[i]);
+            }
+
+
+        }
+
+
 
         while ((line = br.readLine()) != null) {
             line = line.trim();
@@ -52,4 +89,5 @@ public class Instance {
     public static ArrayList<TouristicSite> getTouristicSites() {
         return touristicSites;
     }
+    public static ArrayList<Hotel> getHotels(){ return hotels;}
 }
