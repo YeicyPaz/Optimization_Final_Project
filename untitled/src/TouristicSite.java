@@ -5,6 +5,7 @@ public class TouristicSite extends Site{
         this.score = score;
         this.openingTime = opening;
         this.closingTime = closing;
+        this.isVisited = false;
     }
 
 

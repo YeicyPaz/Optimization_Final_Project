@@ -5,6 +5,7 @@ public class Hotel extends Site{
         this.coordinates = coordinates;
         this.openingTime = 0;
         this.closingTime = closing;
+        this.isVisited = false;
     }
 
 

@@ -9,6 +9,7 @@ public class Instance {
     static double tMax;
     static double[] tD;
 
+    // FAIRE LA MATRICE DES DISTANCES!!!!!
 
 
     static ArrayList<Hotel> hotels;
