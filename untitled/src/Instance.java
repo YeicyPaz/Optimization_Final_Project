@@ -5,9 +5,10 @@ public class Instance {
 
     static int n;          // Vértices
     static int h;          // extra Hotels
-    static int d;          // Days
+    static int d;          // Days number
     static double tMax;
     static double[] tD;
+    public static double[][] distMatrix;
 
     // FAIRE LA MATRICE DES DISTANCES!!!!!
 
@@ -84,11 +85,26 @@ public class Instance {
 
         }
 
-
     }
+
 
     public static ArrayList<TouristicSite> getTouristicSites() {
         return touristicSites;
     }
     public static ArrayList<Hotel> getHotels(){ return hotels;}
+
+
+    public static double getDistMatrix(Site p1, Site p2) {
+        double dx = p1.getCoordinates().getX() - p2.getCoordinates().getX();
+        double dy = p1.getCoordinates().getY() - p2.getCoordinates().getY();
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+
+    public static Hotel getFirstHotel(){
+        return hotels.get(0);
+    }
+    public static Hotel getLastHotel(){
+        return hotels.get(h+1); // the last hotel ID is extra hotels + the first
+    }
 }
