@@ -3,6 +3,7 @@ public class Site {
     double openingTime;
     double closingTime;
     boolean isVisited;
+    String id;
 
     public Point getCoordinates() {
         return coordinates;

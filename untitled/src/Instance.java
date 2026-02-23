@@ -66,9 +66,10 @@ public class Instance {
                 double hotelX = Double.parseDouble(line.split("\\s+")[1].trim());
                 double hotelY = Double.parseDouble(line.split("\\s+")[2].trim());
                 double hotelClosingT = Double.parseDouble(line.split("\\s+")[6].trim());
+                String hotelId = line.split("\\s+")[0].trim();
 
 
-                hotels.add(new Hotel(new Point(hotelX, hotelY), hotelClosingT));
+                hotels.add(new Hotel(new Point(hotelX, hotelY), hotelClosingT, hotelId));
 
             }
             else if (line.startsWith("C")) {
@@ -78,8 +79,9 @@ public class Instance {
                 int touristSiteScore = Integer.parseInt(line.split("\\s+")[3].trim());
                 double touristSiteOpeningT = Double.parseDouble(line.split("\\s+")[5].trim());
                 double touristSiteClosingT = Double.parseDouble(line.split("\\s+")[6].trim());
+                String tSiteId = line.split("\\s+")[0].trim();
 
-                touristicSites.add(new TouristicSite(new Point(touristSiteX, touristSiteY), touristSiteScore, touristSiteOpeningT,touristSiteClosingT));
+                touristicSites.add(new TouristicSite(new Point(touristSiteX, touristSiteY), touristSiteScore, touristSiteOpeningT,touristSiteClosingT,tSiteId));
 
                 }
 
