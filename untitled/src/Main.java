@@ -22,19 +22,37 @@ public class Main {
         });
 
         System.out.println("Distance max total: " + Instance.tMax + ", Distance par jour: "+ java.util.Arrays.toString(Instance.tD));
-
+        System.out.println("-----------------------------------------------");
         System.out.println("---Distance test---");
+
         Day day1 = new Day();
-        System.out.println("day1 distance before update :" + day1.dailyDistance);
+        System.out.println("day1 distance before update: " + day1.dailyDistance);
         day1.setChosenHotel(Instance.hotels.get(0));
         day1.addChosenSites(Instance.touristicSites.get(0));
         day1.updateDistance();
-        System.out.println("day1 distance after update :"+ day1.dailyDistance);
+        System.out.println("day1 distance after update: " + day1.dailyDistance);
+        day1.setChosenHotel(Instance.hotels.get(0));
+        day1.addChosenSites(Instance.touristicSites.get(0));
+        day1.updateDistance();
+        System.out.println("day1 distance 2eme update: " + day1.dailyDistance);
 
-        System.out.println("last hotel point X"+ Instance.getLastHotel().getCoordinates().getX()+ " Y: "+Instance.getLastHotel().getCoordinates().getY());
+
+        /*for (int i = 0; i < Instance.tD[0]; i++ ){
+            if(i<Instance.tD[0]){
+                System.out.println("day1 distance : " + day1.dailyDistance);
+                day1.setChosenHotel(Instance.hotels.get(0));
+                day1.addChosenSites(Instance.touristicSites.get(0));
+                day1.updateDistance();
+
+            }
+        }
+        */
+
+        System.out.println("-------------------------------------------------");
+        System.out.println("last hotel point X: " + Instance.getLastHotel().getCoordinates().getX()+ " Y: "+Instance.getLastHotel().getCoordinates().getY());
 
 
-
+        System.out.println("-------------------------------------------------");
         System.out.println("---Tree skeleton + pruning test---");
         Schedule schedule1 = new Schedule();
         schedule1.generateHotelPaths();

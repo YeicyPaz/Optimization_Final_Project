@@ -22,6 +22,7 @@ public class Day {
     }
 
     public void addChosenSites(TouristicSite site) {
+
         this.chosenSites.add(site);
     }
     public void updateDistance(){
@@ -29,8 +30,7 @@ public class Day {
 
         // à appeler quand on rajoute des sites
 
-        for (TouristicSite site: chosenSites
-             ) {
+        for (TouristicSite site: chosenSites) {
             counter = counter + Instance.getDistMatrix(chosenHotel,site);
         }
         dailyDistance = counter;
