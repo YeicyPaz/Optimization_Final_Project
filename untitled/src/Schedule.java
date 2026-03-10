@@ -1,9 +1,9 @@
 import java.util.*;
 public class Schedule {
 
-    ArrayList<Day> schedule = new ArrayList<>();
-    int daysNb = Instance.d;
-    public List<List<Hotel>> validHotelPaths = new ArrayList<>(); // combinations with fixed start and end
+    ArrayList<Day> schedule = new ArrayList<>(); //les D jour du voyage
+    int daysNb = Instance.d;            //nombre de jours (D)
+    public List<List<Hotel>> validHotelPaths = new ArrayList<>(); // combinations with fixed start and end. TOUTES les sequence valides des hotels
     public Schedule(){
         for (int d = 0; d < daysNb; d++) {
             schedule.add(new Day()); // Initialisation of nbDays days in the schedule
@@ -35,7 +35,7 @@ public class Schedule {
     day          le jour actuel (0-indexed)
     hotelEnd     l'hôtel final fixe
      */
-    private void exploreHotels(List<Hotel> currentPath, Hotel currentHotel, int day, Hotel hotelEnd) {
+    private void exploreHotels(List<Hotel> currentPath, Hotel currentHotel, int day, Hotel hotelEnd) { //algoritme backtracking recursive pour explorer tout les combinaisons
 
         // Cas de base : dernier jour → on doit aller directement à l'hôtel final
         if (day == daysNb - 1) {
