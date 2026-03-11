@@ -10,8 +10,45 @@ public class Schedule {
         }
     }
 
+    public void greedyFillDay(int jour, Hotel hotelDep, Hotel hotelArr, Set<Site> sitesDejaVisites) {
+        //On récupère le jour à remplir
+        Day day = schedule.get(jour);
+        // initialisation du current comme Site (1er hotel ou dernier site visité)
+        Site current = hotelDep;
+        double distanceTraveled = 0.0; //distance parcourue
+        double distanceLeft = Instance.tD[jour]; // distance restante
 
-    //Explorer en profondeur (DFS) toutes les combinaisons d'hôtels intermédiaires, et pruning des chemin quui dépasse le budget distance d'un jour.
+        while (true){
+            Site best = null;
+            double bestSiteRatio = -1.0; //score/distance
+            double bestDetour = Double.MAX_VALUE; //détour pour visiter le site
+
+            for (TouristicSite site : Instance.touristicSites
+                 ) {
+                if (sitesDejaVisites.contains(site)){
+                    continue; // on ne visite pas un site déjà visité
+                }
+                // détour(site) = dist(current → site) + dist(site → hotelArrivee)
+                //                - dist(current → hotelArrivee)  // on enlève la distance de l'ancien chemin qui aurait été parcouru si on n'avait pas visité le site
+                double detourDistance = Instance.getDistMatrix(current, site) + Instance.getDistMatrix(site, hotelArr) - Instance.getDistMatrix(current, hotelArr);
+
+                //verification du budget distance
+                //si le détour est trop grand on ignore le site
+
+
+                
+            }
+
+        }
+
+
+
+
+
+    }
+
+
+        //Explorer en profondeur (DFS) toutes les combinaisons d'hôtels intermédiaires, et pruning des chemin quui dépasse le budget distance d'un jour.
     /*
     faire récursivement
     regarder tout les chemins possibles d'hotels (prenant en compte seulement les hotels)
