@@ -9,51 +9,8 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-
-        //normalement si tu as la même structure de dossier que moi ça devrait marcher
         String doc = "untitled/instances/Inst1.txt";
         Instance.readFile(doc);
-
-        Instance.getHotels().forEach(site -> {
-
-            System.out.println("x: "+ site.coordinates.x + " y: " + site.coordinates.y);
-            //System.out.println("score: "+ site.score);
-
-        });
-
-        System.out.println("Distance max total: " + Instance.tMax + ", Distance par jour: "+ java.util.Arrays.toString(Instance.tD));
-        System.out.println("-----------------------------------------------");
-        System.out.println("---Distance test---");
-
-        Day day1 = new Day();
-        System.out.println("day1 distance before update: " + day1.dailyDistance);
-        day1.setChosenHotel(Instance.hotels.get(0));
-        day1.addChosenSites(Instance.touristicSites.get(0));
-        day1.updateDistance();
-        System.out.println("day1 distance after update: " + day1.dailyDistance);
-        day1.setChosenHotel(Instance.hotels.get(0));
-        day1.addChosenSites(Instance.touristicSites.get(0));
-        day1.updateDistance();
-        System.out.println("day1 distance 2eme update: " + day1.dailyDistance);
-
-
-        /*for (int i = 0; i < Instance.tD[0]; i++ ){
-            if(i<Instance.tD[0]){
-                System.out.println("day1 distance : " + day1.dailyDistance);
-                day1.setChosenHotel(Instance.hotels.get(0));
-                day1.addChosenSites(Instance.touristicSites.get(0));
-                day1.updateDistance();
-
-            }
-        }
-        */
-
-        System.out.println("-------------------------------------------------");
-        System.out.println("last hotel point X: " + Instance.getLastHotel().getCoordinates().getX()+ " Y: "+Instance.getLastHotel().getCoordinates().getY());
-
-
-        System.out.println("-------------------------------------------------");
-        System.out.println("---Tree skeleton + pruning test---");
         Schedule schedule1 = new Schedule();
         schedule1.generateHotelPaths();
         // j'ai ajouté un ID dans les sites comme ça on peut affiché H0 H1 H2
@@ -64,11 +21,14 @@ public class Main {
             }
             System.out.println();
         }
-        /* To retrieve the list of hotel object (pour Yeicy)
-        for (List<Hotel> validHotelPaths: schedule1.validHotelPaths
+
+        schedule1.buildGreedySolution(schedule1.validHotelPaths.get(1));
+        for (Day day: schedule1.schedule
              ) {
-            System.out.println(validHotelPaths);
+            System.out.println("Daily distance: "+day.dailyDistance);
+            System.out.println("Daily distance: "+day.dailyScore);
+
         }
-         */
+        System.out.println("score total = "+schedule1.totalScore(schedule1.schedule));
     }
 }

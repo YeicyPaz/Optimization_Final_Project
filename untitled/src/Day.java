@@ -21,18 +21,23 @@ public class Day { //un voyage par jour
         this.chosenHotel = chosenHotel;
     }
 
-    public void addChosenSites(TouristicSite site) { //pour ajouter un site visité ce jour la
-
+    public void addChosenSite(TouristicSite site) { //pour ajouter un site visité ce jour la
         this.chosenSites.add(site);
     }
-    public void updateDistance(){ //pour recalcule la distance du jour en utilisant getDistMatrix() de la class intance
+    public void updateDistanceAndScore(){ //pour recalcule la distance du jour en utilisant getDistMatrix() de la class intance
         double counter = 0.0;
+        double counterScore = 0.0;
 
-        // à appeler quand on rajoute des sites
 
-        for (TouristicSite site: chosenSites) {
-            counter = counter + Instance.getDistMatrix(chosenHotel,site);
-        }
         dailyDistance = counter;
+    }
+
+
+    public void setDailyDistance(double dailyDistance) {
+        this.dailyDistance = dailyDistance;
+    }
+
+    public void setDailyScore(double dailyScore) {
+        this.dailyScore = dailyScore;
     }
 }
