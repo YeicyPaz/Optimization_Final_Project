@@ -36,7 +36,6 @@ public class Schedule {
                 //si le détour est trop grand on ignore le site
 
 
-                
             }
 
         }
