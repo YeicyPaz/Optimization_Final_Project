@@ -1,11 +1,8 @@
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-import java.io.*;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -29,11 +26,11 @@ public class Main {
         System.out.println("day1 distance before update: " + day1.dailyDistance);
         day1.setChosenHotel(Instance.hotels.get(0));
         day1.addChosenSites(Instance.touristicSites.get(0));
-        day1.updateDistance();
+        day1.updateDistance(instance);
         System.out.println("day1 distance after update: " + day1.dailyDistance);
         day1.setChosenHotel(Instance.hotels.get(0));
         day1.addChosenSites(Instance.touristicSites.get(0));
-        day1.updateDistance();
+        day1.updateDistance(instance);
         System.out.println("day1 distance 2eme update: " + day1.dailyDistance);
 
 

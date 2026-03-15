@@ -25,7 +25,7 @@ public class Day { //un voyage par jour
 
         this.chosenSites.add(site);
     }
-    public void updateDistance(){ //pour recalcule la distance du jour en utilisant getDistMatrix() de la class intance
+    public void updateDistance(Instance instance){ //pour recalcule la distance du jour en utilisant getDistMatrix() de la class intance
         double counter = 0.0;
 
         // à appeler quand on rajoute des sites
