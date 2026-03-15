@@ -21,6 +21,7 @@ public class Main {
             }
             System.out.println();
         }
+        schedule1.buildGreedySolution(schedule1.validHotelPaths.get(0));
         for (Day day: schedule1.schedule
              ) {
             System.out.println("Daily distance: "+day.dailyDistance);

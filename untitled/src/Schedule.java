@@ -88,7 +88,7 @@ public class Schedule {
                     best = site;
                     bestDetour = realCost;
                     bestDepartureTime = departureTime;
-                    System.out.println("the best site's ratio is: "+bestSiteRatio);
+                    //System.out.println("the best site's ratio is: "+bestSiteRatio);
 
                 }
             }
