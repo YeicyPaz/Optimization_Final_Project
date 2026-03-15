@@ -2,6 +2,7 @@ import java.util.ArrayList;
 
 public class Day { //un voyage par jour
 
+    int index;
     Hotel chosenHotel; //the chosen hotel for the night
     ArrayList<TouristicSite> chosenSites; // the chosen sites to visit in the day
     double dailyDistance;
@@ -11,10 +12,22 @@ public class Day { //un voyage par jour
     Journée -> array list des sites et hotels + distance parcourus
 
      */
-    public Day(){
+    public Day(int index){
+        this.index = index;
         this.chosenSites = new ArrayList<TouristicSite>();
         dailyDistance = 0.0;
         dailyScore = 0.0;
+    }
+    public void removeSite(int siteInx){
+        TouristicSite site = chosenSites.get(siteInx);
+        chosenSites.remove(site);
+    }
+    public void removeSite(TouristicSite site){
+        if(chosenSites.contains(site)){
+            chosenSites.remove(site);
+        }else {
+            System.out.println("Can't remove the site, it is not on the list");
+        }
     }
 
     public void setChosenHotel(Hotel chosenHotel) { //pour l'hotel de fin de jour
@@ -32,6 +45,21 @@ public class Day { //un voyage par jour
         dailyDistance = counter;
     }
 
+    public Hotel getChosenHotel() {
+        return chosenHotel;
+    }
+
+    public ArrayList<TouristicSite> getChosenSites() {
+        return chosenSites;
+    }
+
+    public double getDailyDistance() {
+        return dailyDistance;
+    }
+
+    public double getDailyScore() {
+        return dailyScore;
+    }
 
     public void setDailyDistance(double dailyDistance) {
         this.dailyDistance = dailyDistance;

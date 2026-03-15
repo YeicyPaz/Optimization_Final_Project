@@ -21,12 +21,10 @@ public class Main {
             }
             System.out.println();
         }
-
-        schedule1.buildGreedySolution(schedule1.validHotelPaths.get(1));
         for (Day day: schedule1.schedule
              ) {
             System.out.println("Daily distance: "+day.dailyDistance);
-            System.out.println("Daily distance: "+day.dailyScore);
+            System.out.println("Daily score: "+day.dailyScore);
 
         }
         System.out.println("score total = "+schedule1.totalScore(schedule1.schedule));
