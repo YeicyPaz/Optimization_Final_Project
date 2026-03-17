@@ -54,8 +54,21 @@ public class Day { //un voyage par jour
     }
 
     public double getDailyDistance() {
-        return dailyDistance;
+        double counter = 0.0;
+        /*for (int i = 0; i < chosenSites.size(); i++) {
+            if(i == 0){
+                System.out.println("index day "+this.index+"l'hotel choisi " +this.chosenHotel.id);
+                counter += Instance.getDistMatrix(Instance.hotels.get(index),chosenSites.get(0));
+            } else if (i == chosenSites.size() - 1) {
+                counter += Instance.getDistMatrix(chosenSites.get(i),Instance.hotels.get(index));
+            } else{
+                counter += Instance.getDistMatrix(chosenSites.get(i-1), chosenSites.get(i));
+            }
+
+        }*/return counter;
+
     }
+
 
     public double getDailyScore() {
         return dailyScore;
@@ -67,5 +80,12 @@ public class Day { //un voyage par jour
 
     public void setDailyScore(double dailyScore) {
         this.dailyScore = dailyScore;
+    }
+
+    public void sitesToString() {
+        for (Site site: chosenSites
+             ) {
+            System.out.println(site.id);
+        }
     }
 }
