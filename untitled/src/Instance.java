@@ -10,9 +10,6 @@ public class Instance {
     static double[] tD;
     public static double[][] distMatrix;
 
-    // FAIRE LA MATRICE DES DISTANCES!!!!!
-
-
     static ArrayList<Hotel> hotels;
     static ArrayList<TouristicSite> touristicSites;
     public static void readFile(String filePath) throws IOException {
@@ -52,12 +49,7 @@ public class Instance {
             for (int i = 0; i < d; i++) {
                 tD[i] = Double.parseDouble(parts[i]);
             }
-
-
         }
-
-
-
         while ((line = br.readLine()) != null) {
             line = line.trim();
 
@@ -84,11 +76,8 @@ public class Instance {
                 touristicSites.add(new TouristicSite(new Point(touristSiteX, touristSiteY), touristSiteScore, touristSiteOpeningT,touristSiteClosingT,tSiteId));
 
                 }
-
         }
-
     }
-
 
     public static ArrayList<TouristicSite> getTouristicSites() {
         return touristicSites;

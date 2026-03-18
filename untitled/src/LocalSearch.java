@@ -9,7 +9,7 @@ public class LocalSearch {
             for (int i = 0; i < day.chosenSites.size(); i++) {
 
             }
-        }
+        }return 0.0;
 
     }
 

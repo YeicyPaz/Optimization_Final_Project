@@ -7,7 +7,7 @@ public class TestRelocate {
         String doc = "untitled/instances/Inst1.txt";
         Instance.readFile(doc);
         Schedule schedule = new Schedule();
-        schedule.generateHotelPaths();
+        schedule.chooseHotelPath();
 
     }
 }

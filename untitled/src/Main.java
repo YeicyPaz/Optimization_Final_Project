@@ -9,22 +9,8 @@ public class Main {
         String doc = "untitled/instances/Inst1.txt";
         Instance.readFile(doc);
         Schedule schedule1 = new Schedule();
-        schedule1.generateHotelPaths();
-        // j'ai ajouté un ID dans les sites comme ça on peut affiché H0 H1 H2
-        for (int i = 0; i < schedule1.validHotelPaths.size(); i++) {
-            System.out.print("path number " + i + ": ");
-            for (int j = 0; j < Instance.d+1 ; j++) {
-                System.out.print(schedule1.validHotelPaths.get(i).get(j).id+" ");
-            }
-            System.out.println();
-        }
-        schedule1.buildGreedySolution(schedule1.validHotelPaths.get(0));
-        for (Day day: schedule1.travelDays
-             ) {
-            System.out.println("Daily distance: "+day.dailyDistance);
-            System.out.println("Daily score: "+day.dailyScore);
+        schedule1.chooseHotelPath();
+        System.out.println(schedule1.bestHotelPath);
 
-        }
-        System.out.println("score total = "+schedule1.totalScore(schedule1.travelDays));
     }
 }

@@ -4,7 +4,7 @@ public class Schedule {
     ArrayList<Day> travelDays = new ArrayList<>(); //les D jour du voyage
     int daysNb = Instance.d;            //nombre de jours (D)
     public Set<TouristicSite> siteAlreadyVisited;
-    public List<List<Hotel>> validHotelPaths = new ArrayList<>(); // combinations with fixed start and end. TOUTES les sequence valides des hotels
+    public List<Hotel> bestHotelPath = new ArrayList<>(); // best paths parmis les hotels choisi avec l'heuristique
 
     // Pour la recherche locale
     private double bestGlobalScore = -1.0;
@@ -14,6 +14,7 @@ public class Schedule {
             travelDays.add(new Day(d)); // Initialisation of nbDays days in the schedule
         }
         siteAlreadyVisited = new HashSet<>();
+
     }
 
     public void buildGreedySolution(List<Hotel> hotelPath) {
@@ -113,23 +114,22 @@ public class Schedule {
 
     //heuristique pour les hotels
     public void chooseHotelPath(){
-        List<Hotel> currentPath = new ArrayList<>();
         Hotel firstHotel = Instance.getFirstHotel();
         Hotel lastHotel = Instance.getLastHotel();
         List<Score> hotelsScores = new ArrayList<>();
 
-        //on calcule les concentrations des sites au alentours de chaque hotel
-        double perimeter = 10.0; //à changer à moyenne des distances journalière /2?
+        //on calcule les "concentrations" des sites au alentours de chaque hotel
+       Double perimeter = (Instance.tMax/Instance.d)/2; //moyenne des distances max par jour / 2 à changer si besoin
+                                    // pour avoir un périmètre où l'on peut rentrer à l'hotel après la visite d'un site
         for (Hotel hotel: Instance.hotels
              ) {
             //on regarde tous les sites et on compte ceux qui sont à une distance inférieure au périmètre
             double nearbySitesCount = 0.0;
-
             double nearbySitesScore = 0.0; //on compte aussi le score pour voir départager les meilleures concentrations
             double nearbySitesHoursTime = 0.0;// compter aussi le temps d'ouverture ? ex: le temps d'ouverture le plus grand
 
-            for (TouristicSite site: Instance.touristicSites
-                 ) {
+            for (TouristicSite site : Instance.touristicSites
+            ) {
                 double distToSite = Instance.getDistMatrix(hotel, site);
                 if (distToSite <= perimeter) {
                     nearbySitesCount += 1.0;
@@ -139,55 +139,61 @@ public class Schedule {
             }
             double distanceFromSegment = calculateDistanceFromSegment(hotel, firstHotel, lastHotel);
 
-            // Ajout du score de l'hôtel
+            // les différents scores de l'hôtel
             hotelsScores.add(new Score(hotel, nearbySitesCount, nearbySitesScore, nearbySitesHoursTime, distanceFromSegment));
-
-            // Affichage des scores (pour débogage)
-            for (Score s : hotelsScores) {
-                System.out.println(s.site.id + ": nearbySitesCount=" + s.score1 +
-                        ", nearbySitesScore=" + s.score2 +
-                        ", distanceFromSegment=" + s.score4);
-            }
-
-            // Sélection des hôtels pour le chemin
-            currentPath.add(firstHotel);
-            for (int day = 1; day < daysNb; day++) {
-                // Choisir le meilleur hôtel pour le jour `day` (en excluant le dernier hôtel)
-                Hotel nextHotel = (Hotel) selectBestHotel(hotelsScores, currentPath.get(day - 1), day);
-                currentPath.add(nextHotel);
-            }
-            currentPath.add(lastHotel);
-
-            // Affichage du chemin final
-            System.out.println("Chemin d'hôtels sélectionné : " + currentPath);
         }
+        this.selectBestHotel(hotelsScores, firstHotel, lastHotel);
+
 
     }
-    private Site selectBestHotel(List<Score> hotelScores, Hotel currentHotel, int day) {
+    private void selectBestHotel(List<Score> hotelScores, Hotel firstHotel, Hotel lastHotel) {
         List<Score> candidates = new ArrayList<>();
-        for (Score score : hotelScores) {
-            // Vérifier que la distance entre l'hôtel actuel et le candidat est réalisable
-            double dist = Instance.getDistMatrix(currentHotel, score.site);
-            if (dist <= Instance.tD[day]) {
-                candidates.add(score);
+        for (int i = 0; i < hotelScores.size(); i++) {
+            double heuristic = this.calculateHeuristicScore(hotelScores.get(i));
+            candidates.add(new Score(hotelScores.get(i).site,heuristic));
+        }
+
+
+        //on trie les candidats selon l'heuristique qui combine les différents scores (nombre de sites, score total, distance du segment,et horaires d'ouverture)
+        Collections.sort(candidates, (s1, s2) -> Double.compare(s2.score1, s1.score1)); // Tri décroissant selon le score heuristique
+        System.out.println("---------------after sorting candidates for day --------------" );
+        for (Score score: candidates
+        ) {
+            System.out.println(" hotel " + score.site.id + " and his score with the heuristic: " + score.score1);
+        }
+        bestHotelPath.add(firstHotel);
+        System.out.println("the first hotel is added correctly: "+ firstHotel.id);
+
+        int d = 0;//the index of the day
+
+        //on essaye de placer les hotels avec la même heuristique, et on choisit le suivant si la distance le permet
+        for (int i = 0; i < candidates.size() ; i++) {
+            if(d >= Instance.d-1) break; // on a déjà choisi les hotels pour tous les jours
+            System.out.println("the hotel of day "+ d + " is: "+ bestHotelPath.get(i).id+ " and we search the next hotel for the day "+ (i+1));
+            double distToFirstHotel = Instance.getDistMatrix(candidates.get(i).site, bestHotelPath.get(d));
+            if(distToFirstHotel <= Instance.tD[d]){
+                bestHotelPath.add((Hotel) candidates.get(i).site);
+                System.out.println("the hotel of day "+ (i+1) + " is: "+ candidates.get(i).site.id);
+                d++;
+            }else{
+                System.out.println("the hotel "+ candidates.get(i).site.id + " is too far from the hotel of day "+ i + " with a distance of "+ distToFirstHotel);
+                //si il est trop loin on teste le même jour avec le candidat suivant
             }
         }
 
-        // Retourner le meilleur candidat selon l'heuristique
-        if (candidates.isEmpty()) {
-            return Instance.getLastHotel();  // Retour à l'hôtel final si aucun candidat valide
-        }
-        Collections.sort(candidates, Comparator.comparingDouble(this::calculateHeuristicScore).reversed());
-        return candidates.get(0).site;
+        bestHotelPath.add(lastHotel);
+        System.out.println("the last hotel is added correctly: "+ lastHotel.id);
+
+
     }
 
 
     private double calculateHeuristicScore(Score score) {
         // Poids pour chaque critère, à changer ??????
-        double weightCount = 0.3;
-        double weightScore = 0.5;
-        double weightHours = 0.1;
-        double weightDistance = 0.1;
+        double weightCount = 0.3; //nombre de sites dans le périmètre
+        double weightScore = 0.2; //score total des sites dans le périmètre
+        double weightHours = 0.1; //horaires d'ouverture des sites dans le périmètre
+        double weightDistance = 0.4; // distance de l'hotel par rapport au chemin directe entre l'hotel de départ et d'arrivée
 
         // Normalisation des valeurs (optionnel, pour équilibrer les critères)
         double normalizedCount = score.score1 / 10.0;  // Exemple : diviser par un facteur pour normaliser
@@ -202,6 +208,10 @@ public class Schedule {
     }
 
 
+    /*
+    * Permet de savoir à quelle distance se trouve un hôtel par rapport à la ligne droite idéale entre l’hôtel de départ (start) et l’hôtel d’arrivée (end)
+    *  Cela permet d’éviter de choisir des hôtels trop éloignés de ce chemin idéal
+     */
     private double calculateDistanceFromSegment(Hotel hotel, Hotel start, Hotel end) {
         // Coordonnées des hôtels (à adapter selon ta structure de données)
         double x = hotel.getCoordinates().x, y = hotel.getCoordinates().y;
@@ -209,20 +219,21 @@ public class Schedule {
         double x2 = end.getCoordinates().x, y2 = end.getCoordinates().y;
 
         // Calcul de la distance entre le point (x, y) et le segment [(x1, y1), (x2, y2)]
-        double segmentLength = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        if (segmentLength == 0) {
+        double segmentLength = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)); // calculer la longueur du segment de ligne entre les points (x1, y1) et (x2, y2) en utilisant la formule de la distance euclidienne
+        if (segmentLength == 0) { //si c'est un point on calcule simplement la distance entre les deux points
             return Math.sqrt(Math.pow(x - x1, 2) + Math.pow(y - y1, 2));
         }
 
-        double t = ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / (segmentLength * segmentLength);
-        t = Math.max(0, Math.min(1, t));
+        //produit scalaire
+        double t = ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / (segmentLength * segmentLength); //position relative de la projection orthogonale du point (x, y) sur le segment
+        t = Math.max(0, Math.min(1, t));    // si l'hotel est en dehors du segment on le projette sur le segment le plus proche
 
         double projectionX = x1 + t * (x2 - x1);
         double projectionY = y1 + t * (y2 - y1);
 
         return Math.sqrt(Math.pow(x - projectionX, 2) + Math.pow(y - projectionY, 2));
     }
-    
+
 
     public double totalScore(ArrayList<Day> days){
         double count = 0.0;
