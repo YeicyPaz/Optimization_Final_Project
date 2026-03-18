@@ -6,15 +6,11 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String doc = "untitled/instances/Inst6.txt";
+        String doc = "untitled/instances/Inst1.txt";
         Instance.readFile(doc);
         Schedule schedule1 = new Schedule();
         schedule1.chooseHotelPath();
         System.out.println(schedule1.bestHotelPath);
-        for (Hotel hotel :schedule1.bestHotelPath
-             ) {
-            System.out.println(hotel.id);
-        }
 
     }
 }

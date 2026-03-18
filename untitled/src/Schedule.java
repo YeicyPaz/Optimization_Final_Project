@@ -169,13 +169,12 @@ public class Schedule {
         //on essaye de placer les hotels avec la même heuristique, et on choisit le suivant si la distance le permet
         for (int i = 0; i < candidates.size() ; i++) {
             if(d >= Instance.d-1) break; // on a déjà choisi les hotels pour tous les jours
-            System.out.println("the hotel of day "+ d + " is: "+ bestHotelPath.get(d).id+ " and we search the next hotel for the day "+ (d+1));
+            System.out.println("the hotel of day "+ d + " is: "+ bestHotelPath.get(i).id+ " and we search the next hotel for the day "+ (i+1));
             double distToFirstHotel = Instance.getDistMatrix(candidates.get(i).site, bestHotelPath.get(d));
             if(distToFirstHotel <= Instance.tD[d]){
                 bestHotelPath.add((Hotel) candidates.get(i).site);
-                System.out.println("the hotel of day "+ (d+1) + " is: "+ candidates.get(i).site.id);
+                System.out.println("the hotel of day "+ (i+1) + " is: "+ candidates.get(i).site.id);
                 d++;
-                 // on recommence à tester les candidats à partir du premier pour le jour suivant
             }else{
                 System.out.println("the hotel "+ candidates.get(i).site.id + " is too far from the hotel of day "+ i + " with a distance of "+ distToFirstHotel);
                 //si il est trop loin on teste le même jour avec le candidat suivant
