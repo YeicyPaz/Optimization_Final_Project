@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String doc = "untitled/instances/Inst7.txt";
+        String doc = "untitled/instances/Inst9.txt";
         Instance.readFile(doc);
         Schedule schedule1 = new Schedule();
         schedule1.chooseHotelPath();
