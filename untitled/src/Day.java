@@ -68,4 +68,19 @@ public class Day { //un voyage par jour
     public void setDailyScore(double dailyScore) {
         this.dailyScore = dailyScore;
     }
+
+    //-------------------VNS------------------------
+    //on fait la clonation de la lista pour eviter de modifier la list original et que le resultat soit pire
+    public Day cloneDay() {
+        Day clonedDay = new Day(this.index);
+        clonedDay.setDailyDistance(this.dailyDistance);
+        clonedDay.setDailyScore(this.dailyScore);
+        clonedDay.setChosenHotel(this.chosenHotel);
+
+        // on fait les copies des list des sites, mais on maintient les reference des object originales
+        // les propietés d'un site ne changent pas pendant son execution
+        clonedDay.chosenSites = new ArrayList<>(this.chosenSites);
+        return clonedDay;
+    }
+
 }

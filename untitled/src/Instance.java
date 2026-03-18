@@ -7,7 +7,7 @@ public class Instance {
     static int h;          // extra Hotels
     static int d;          // Days number
     static double tMax;
-    static double[] tD;
+    static double[] tD;   //total distance
     public static double[][] distMatrix;
 
     // FAIRE LA MATRICE DES DISTANCES!!!!!

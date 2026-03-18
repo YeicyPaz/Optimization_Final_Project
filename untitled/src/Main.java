@@ -1,11 +1,8 @@
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-import java.io.*;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -21,13 +18,44 @@ public class Main {
             }
             System.out.println();
         }
-        schedule1.buildGreedySolution(schedule1.validHotelPaths.get(0));
-        for (Day day: schedule1.schedule
+        schedule1.buildGreedySolution(schedule1.validHotelPaths.get(2));
+        for (Day day: schedule1.travelDays
              ) {
             System.out.println("Daily distance: "+day.dailyDistance);
             System.out.println("Daily score: "+day.dailyScore);
 
         }
-        System.out.println("score total = "+schedule1.totalScore(schedule1.schedule));
+        System.out.println("-----------------------------------------------------------");
+        System.out.println("score total = "+schedule1.totalScore(schedule1.travelDays));
+
+
+        long starTimeGlobal = System.currentTimeMillis();
+
+        schedule1.executeVNS(schedule1,schedule1.validHotelPaths.get(2));
+
+        long endTimeGlobal = System.currentTimeMillis();
+        double timeInSeconds =(endTimeGlobal-starTimeGlobal)/1000.0;
+
+        System.out.println("--------------------------------------");
+        System.out.println("--------FINAL RESULTS VNS--------------");
+        System.out.println("---------------------------------------");
+        System.out.println("Execution time: " + timeInSeconds+ "seconds");
+
+        //on parcour le meillieur schedule trouvé par le VNS, On montre jour par jour
+        for (int i = 0; i< schedule1.bestGlobalSchedule.travelDays.size(); i++){
+            Day day = (Day) schedule1.bestGlobalSchedule.travelDays.get(i);
+            System.out.println("Day: " + i + " | distance: " + String.format("%.2f", day.dailyDistance) + " | Score: "+ day.dailyScore);
+            System.out.print("Sites visited: ");
+            for (Object obj: day.chosenSites){
+                TouristicSite site = (TouristicSite) obj;
+                System.out.print(site.id + " ");
+            }
+            System.out.println();
+
+        }
+        System.out.println("--------------------------------------");
+        System.out.println("SCORE GREEDY INITIAL: " + schedule1.totalScore(schedule1.travelDays));
+        System.out.println("SCORE TOTAL VNS FINAL: " +schedule1.totalScore(schedule1.bestGlobalSchedule.travelDays));
+        System.out.println("-------------------------------------");
     }
 }
