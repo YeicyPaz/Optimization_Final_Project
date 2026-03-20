@@ -107,6 +107,6 @@ public class Instance {
         return hotels.get(0);
     }
     public static Hotel getLastHotel(){
-        return hotels.get(h+1); // the last hotel ID is extra hotels + the first
+        return hotels.get(1); // the last hotel ID is extra hotels + the first
     }
 }

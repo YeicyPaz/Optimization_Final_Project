@@ -18,6 +18,7 @@ public class Main {
             }
             System.out.println();
         }
+        //construction de greedy avec la meilleure route connue
         schedule1.buildGreedySolution(schedule1.validHotelPaths.get(2));
         for (Day day: schedule1.travelDays
              ) {
@@ -31,6 +32,7 @@ public class Main {
 
         long starTimeGlobal = System.currentTimeMillis();
 
+        //execution de VNS avec la route choisi
         schedule1.executeVNS(schedule1,schedule1.validHotelPaths.get(2));
 
         long endTimeGlobal = System.currentTimeMillis();
