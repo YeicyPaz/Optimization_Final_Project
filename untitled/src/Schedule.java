@@ -31,7 +31,7 @@ public class Schedule {
             System.out.println("------JOUR n°"+jour+"-----");
             Hotel dep = hotelPath.get(jour);
             System.out.println("-----Hotel de départ------"+ dep.id);
-            Hotel arr = hotelPath.get(jour + 1);
+            Hotel arr = hotelPath.get(jour+1);
             System.out.println("-----Hotel d'arrivée------"+ arr.id);
             greedyFillDay(jour, dep, arr);
 
@@ -63,14 +63,15 @@ public class Schedule {
                     continue; // on ne visite pas un site déjà visité
                 }
                 // détour(site) = dist(current → site) + dist(site → hotelArrivee)
-                //               - dist(current → hotelArrivee)  // on enlève la distance de l'ancien chemin qui aurait été parcouru si on n'avait pas visité le site
+
 
                 double distToSite = Instance.getDistMatrix(current, site);
                 double distToHotel = Instance.getDistMatrix(site, hotelArr);
-                double distDirect = Instance.getDistMatrix(current, hotelArr);
-                double detourDistance = distToSite + distToHotel - distDirect;
+                // on enlève la distance de l'ancien chemin qui aurait été parcouru si on n'avait pas visité le site
+                double distDirect = Instance.getDistMatrix(current, hotelArr); // à enlever si on ajoute le site à l'itinéraire
+                double detourDistance = distToSite + distToHotel;
 
-                double arrivalTime   = distanceTraveled + distToSite;
+                double arrivalTime   = distanceTraveled - distDirect + distToSite;
 
                 //verification du budget distance
                 //si le détour est trop grand on ignore le site
@@ -79,7 +80,7 @@ public class Schedule {
                 double departureTime = arrivalTime + waitingTime; //soit on part dès qu'on est arrivé soit dès que cela ouvre
                 double realCost = detourDistance + waitingTime;
 
-                if(distanceTraveled + realCost > distanceLeft) continue;
+                if(distanceTraveled - distDirect + realCost > distanceLeft) continue;
 
                 double ratio = site.score / realCost; //score/détour
 
@@ -88,19 +89,24 @@ public class Schedule {
                     best = site;
                     bestDetour = realCost;
                     bestDepartureTime = departureTime;
-                    System.out.println("the best site's ratio is: "+bestSiteRatio);
-                    System.out.println("the site id "+ best.id);
 
                 }
             }
             if(best == null){
+
                 break; // pas de site à visiter, on termine le jour
             }
+            double distToSite = Instance.getDistMatrix(current, best);
+            double distToHotel = Instance.getDistMatrix(best, hotelArr);
+            double distDirect = Instance.getDistMatrix(current, hotelArr);
+            double detourDistance = distToSite + distToHotel - distDirect;
             day.addChosenSite(best);
             System.out.println("the best site is --------------> "+best.id);
+            System.out.println("the best site to visit is "+ best.id + " with a score of "+ best.score + " and a detour of "+ bestDetour + " and a departure time of "+ bestDepartureTime);
+            System.out.println("the distance to the site is "+ distToSite + " and the distance to the hotel is "+ distToHotel + " and the direct distance is "+ distDirect);
             siteAlreadyVisited.add(best);
             distanceTraveled += bestDetour;
-            distanceLeft -= bestDetour;
+            distanceLeft = distanceLeft + distDirect - bestDetour;
             counterScore += best.score;
             current = best; // on se déplace vers le site visité
             System.out.println("score counter: "+ counterScore);
@@ -196,17 +202,6 @@ public class Schedule {
                 bestHotelPath.add(bestInsertionIndex, candidateHotel);
                 dayIndex++;
             }
-/*
-            System.out.println("the hotel of day "+ dayIndex + " is: "+ bestHotelPath.get(dayIndex).id+ " and we search the next hotel for the day "+ (dayIndex+1)); // bestHotelPath.get(dayIndex).id pour dayIndex = 0 est le premier hotel
-            double distToFirstHotel = Instance.getDistMatrix(candidates.get(i).site, bestHotelPath.get(dayIndex));
-            if(distToFirstHotel <= Instance.tD[dayIndex]){
-                bestHotelPath.add((Hotel) candidates.get(i).site);
-                System.out.println("the hotel of day "+ (dayIndex+1) + " is: "+ candidates.get(i).site.id);
-                dayIndex++;
-            }else{
-                System.out.println("the hotel "+ candidates.get(i).site.id + " is too far from the hotel of day "+ i + " with a distance of "+ distToFirstHotel);
-                //si il est trop loin on teste le même jour avec le candidat suivant
-            }*/
         }
 
 

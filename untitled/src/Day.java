@@ -82,6 +82,13 @@ public class Day { //un voyage par jour
         this.dailyScore = dailyScore;
     }
 
+    public Site getLastSite() {
+        if (chosenSites.isEmpty()) {
+            return chosenHotel; // Si aucun site n'a été visité, retourner l'hôtel de départ
+        }
+        return chosenSites.get(chosenSites.size() - 1); // Retourner le dernier site visité
+    }
+
     public void sitesToString() {
         for (Site site: chosenSites
              ) {
