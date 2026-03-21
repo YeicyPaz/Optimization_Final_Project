@@ -137,23 +137,28 @@ public class ALNS {
 
             // Sélectionner une méthode de réparation
             int repairMethodIndex = selectMethod(repairWeights);
+            schedule.siteAlreadyVisited = rebuildVisited(currentDays);
+
+// Puis la réparation :
             switch (repairMethodIndex) {
                 case 0:
                     for (int dayNb = 0; dayNb < schedule.daysNb; dayNb++) {
-                        Day day = currentDays.get(dayNb);
-                        Hotel dep = schedule.bestHotelPath.get(dayNb);
-                        Hotel arr = schedule.bestHotelPath.get(dayNb + 1);
-                        repairWithBestScore(schedule,day);
+                        repairWithBestScore(schedule, currentDays.get(dayNb)); // passer currentDays, pas schedule.travelDays !
                     }
                     break;
                 case 1:
-
+                    for (int dayNb = 0; dayNb < schedule.daysNb; dayNb++) {
+                        repairWithClosestPosition(schedule, currentDays.get(dayNb));
+                    }
                     break;
                 case 2:
-                    // Autre méthode de réparation
+                    for (int dayNb = 0; dayNb < schedule.daysNb; dayNb++) {
+                        Hotel dep = schedule.bestHotelPath.get(dayNb);
+                        Hotel arr = schedule.bestHotelPath.get(dayNb + 1);
+                        repairWithRegret(schedule, currentDays.get(dayNb), dep, arr);
+                    }
                     break;
             }
-
             // Calculer le score de la nouvelle solution
             double newScore = schedule.totalScore(currentDays);
 
@@ -176,8 +181,30 @@ public class ALNS {
         // Mettre à jour les jours avec la meilleure solution trouvée
         schedule.travelDays = cloneDays(bestDays);
     }
-
+    // Remplacer cloneDays par une version qui reconstruit aussi siteAlreadyVisited
     private ArrayList<Day> cloneDays(ArrayList<Day> days) {
+        ArrayList<Day> clonedDays = new ArrayList<>();
+        for (Day day : days) {
+            Day clonedDay = new Day(day.index);
+            clonedDay.chosenSites.addAll(day.chosenSites);
+            clonedDay.dailyDistance = day.dailyDistance;
+            clonedDay.dailyScore = day.dailyScore;
+            clonedDay.setChosenHotel(day.getChosenHotel()); // ne pas oublier l'hôtel !
+            clonedDays.add(clonedDay);
+        }
+        return clonedDays;
+    }
+
+    // Reconstruire siteAlreadyVisited à partir d'un clone de days
+    private Set<TouristicSite> rebuildVisited(ArrayList<Day> days) {
+        Set<TouristicSite> visited = new HashSet<>();
+        for (Day day : days) {
+            visited.addAll(day.chosenSites);
+        }
+        return visited;
+    }
+
+    /*private ArrayList<Day> cloneDays(ArrayList<Day> days) {
         ArrayList<Day> clonedDays = new ArrayList<>();
         for (Day day : days) {
             Day clonedDay = new Day(day.index);
@@ -189,7 +216,7 @@ public class ALNS {
         return clonedDays;
     }
 
-
+*/
     private void repairWithRegret(Schedule schedule, Day day, Hotel hotelDep, Hotel hotelArr) {
         int dayNb = day.index;
         Site lastSite = day.getLastSite();
@@ -268,7 +295,7 @@ public class ALNS {
         double distToSite = Instance.getDistMatrix(lastSite, site);
         double distToHotel = Instance.getDistMatrix(site, hotelArr);
         double distDirect = Instance.getDistMatrix(lastSite, hotelArr);
-        double detourDistance = distToSite + distToHotel - distDirect;
+        double detourDistance = distToSite + distToHotel ;
 
         double arrivalTime = day.dailyDistance + distToSite;
         if (arrivalTime > site.closingTime) {
@@ -361,6 +388,11 @@ public class ALNS {
         return description.toString();
     }
 
+    private void repairWithClosestPosition(Schedule schedule, Day day) {
+        //reparation du jour en choisissant le site le plus proche du dernier site visité
+        System.out.println("Réparation avec position la plus proche pour le jour " + day.index);
+        selectClosestPosition(schedule,day);
+    }
 
 
     private void repairWithBestScore(Schedule schedule, Day day) {
@@ -426,7 +458,7 @@ public class ALNS {
         String idBefore = "";
         String idAfter = "";
         //on essaye de placer les hotels avec la même heuristique, et on choisit le suivant si la distance le permet
-        for (int i = 5; i < sitesScore.size() ; i++) {
+        for (int i = 0; i < sitesScore.size() ; i++) {
             //if(day.index >= Instance.d-1) break; // on a déjà choisi les hotels pour tous les jours
             TouristicSite candidate = (TouristicSite) sitesScore.get(i).site;
 
@@ -445,7 +477,7 @@ public class ALNS {
                     double distToHotel = 0.0;
                     double detourDistance = 0.0;
 
-                    if(day.chosenSites.size()<j+1){//si on veut le placer entre le dernier site et l'hôtel d'arrivée du jour
+                    if(j == day.chosenSites.size() - 1){//si on veut le placer entre le dernier site et l'hôtel d'arrivée du jour
                         idBefore = day.chosenSites.get(j).id;
                         idAfter = day.chosenHotel.id;
                         System.out.println("test placement entre "+ day.chosenSites.get(j).id + " et " + schedule.bestHotelPath.get(day.index+1).id);
@@ -469,7 +501,7 @@ public class ALNS {
                         detourDistance = distToSite + distToHotel ;
                     }
 
-                    if(day.chosenSites.size()<j+1){
+                    if(j == day.chosenSites.size() - 1){
                         distanceDirect = Instance.getDistMatrix(day.chosenSites.get(j), day.chosenHotel);
                     } else if (j == 0) {
                         distanceDirect = Instance.getDistMatrix(schedule.bestHotelPath.get(day.index), day.chosenSites.get(j));
@@ -494,16 +526,178 @@ public class ALNS {
                     System.out.println("daily distance after insertion: "+ day.dailyDistance);
                     return;
 
-
-
                 }
 
             }
         }
 
 
-
-
     }
+
+    /*private void selectClosestPosition(Schedule schedule,Day day) {
+        int bestInsertionIndex = -1;
+        TouristicSite candidate = null;
+
+
+
+        System.out.println("------------Closest position : Placement des sites pour le jour------------------ " + day.index);
+        String idBefore = "";
+        String idAfter = "";
+
+        //pour chaque emplacement on va essayer de placer un site le plus proche possible
+        for (int i = 0; i < day.chosenSites.size(); i++) {
+
+            if (day.chosenSites.size() > 0) { // on cherche à insérer le prochain candidat au meilleur endroit possible dans le chemin déjà construit
+
+                double bestInsertionDetour = Double.MAX_VALUE;
+                double distanceDirect = 0.0;
+                for (int j = 0; j < Instance.getTouristicSites().size(); j++) { //on prends le detour le plus petit pour insérer le candidat
+                    candidate = Instance.getTouristicSites().get(j);
+
+                    if (schedule.siteAlreadyVisited.contains(Instance.getTouristicSites().get(j)) || day.chosenSites.contains(Instance.getTouristicSites().get(j))) {
+                        continue; // Éviter les doublons
+                    }
+                    if (candidate == null) {
+                        continue;
+                    }
+                    double distToSite = 0.0;
+                    double distToHotel = 0.0;
+                    double detourDistance = 0.0;
+
+                    if (i == day.chosenSites.size() - 1) {//si on veut le placer entre le dernier site et l'hôtel d'arrivée du jour
+                        idBefore = day.chosenSites.get(i).id;
+                        idAfter = day.chosenHotel.id;
+                        System.out.println("test closest entre" + day.chosenSites.get(i).id + " et " + schedule.bestHotelPath.get(day.index + 1).id);
+                        distToSite = Instance.getDistMatrix(day.chosenSites.get(i), candidate);
+                        distToHotel = Instance.getDistMatrix(candidate, day.chosenHotel);
+                        detourDistance = distToSite + distToHotel;
+                    } else if (i == 0) {//si on veut le placer entre le premier site et l'hôtel de départ du jour
+                        idBefore = schedule.bestHotelPath.get(day.index).id;
+                        idAfter = day.chosenSites.get(i).id;
+                        System.out.println("test closest entre " + schedule.bestHotelPath.get(day.index).id + " et " + day.chosenSites.get(i).id);
+                        distToSite = Instance.getDistMatrix(schedule.bestHotelPath.get(day.index), candidate);
+                        distToHotel = Instance.getDistMatrix(candidate, day.chosenSites.get(i));
+                        detourDistance = distToSite + distToHotel;
+                    } else { // entre deux sites
+                        idBefore = day.chosenSites.get(i - 1).id;
+                        idAfter = day.chosenSites.get(i).id;
+                        System.out.println("test closest entre " + day.chosenSites.get(i - 1).id + " et " + day.chosenSites.get(i).id);
+                        distToSite = Instance.getDistMatrix(day.chosenSites.get(i - 1), candidate);
+                        distToHotel = Instance.getDistMatrix(candidate, day.chosenSites.get(i));
+                        detourDistance = distToSite + distToHotel;
+                    }
+
+                    if (day.chosenSites.size() < i + 1) {
+                        distanceDirect = Instance.getDistMatrix(day.chosenSites.get(i), day.chosenHotel);
+                    } else if (i == 0) {
+                        distanceDirect = Instance.getDistMatrix(schedule.bestHotelPath.get(day.index), day.chosenSites.get(i));
+                    } else {
+                        distanceDirect = Instance.getDistMatrix(day.chosenSites.get(i - 1), day.chosenSites.get(i));
+                    }
+                    System.out.println("le detour pour insérer le site " + candidate.id + " entre le site " + idBefore + " et le site " + idAfter + " est de " + detourDistance + " avec une distance vers le candidat de " + distToSite + " et une distance vers le site/hotel de " + distToHotel + " et une distance directe de " + distanceDirect);
+                    System.out.println("distance directe" + distanceDirect);
+
+
+                    if (day.dailyDistance + detourDistance - distanceDirect > Instance.tD[day.index]) {
+                        // si le detour est trop grand on ne l'insère pas
+                        System.out.println("the candidate " + candidate.id + " is too far to be inserted before " + idBefore + " aand after " + idAfter);
+                        continue;
+                    }
+
+                    if (detourDistance < bestInsertionDetour) {
+                        bestInsertionDetour = detourDistance;
+                        bestInsertionIndex = i;
+                    } else {
+                        continue; // on ne choisit pas ce candidat car il n'est pas plus proche que le meilleur candidat déjà trouvé
+                    }
+                }
+                    System.out.println("------------------------the closest insertion index for the candidate " + candidate.id + " is: " + bestInsertionIndex + " with a detour of " + bestInsertionDetour);
+                    System.out.println("the index indicates that the candidate " + candidate.id + " is the closest one and will be inserted between " + idBefore + " and the hotel of day " + idAfter);
+
+                    if(bestInsertionIndex == -1){ // si aucun candidat n'est insérable on arrête la recherche pour ce jour
+                        System.out.println("no candidate can be inserted for the day " + day.index);
+                        return;
+                    }
+                    day.chosenSites.add(bestInsertionIndex, candidate);
+                    day.dailyDistance = day.dailyDistance + bestInsertionDetour - distanceDirect;
+                    day.dailyScore += candidate.score;
+                    schedule.siteAlreadyVisited.add(candidate);
+                    System.out.println("daily distance after insertion: " + day.dailyDistance);
+                    return;
+
+
+
+            }
+        }
+    }*/
+    private void selectClosestPosition(Schedule schedule, Day day) {
+        int dayNb = day.index;
+        Hotel hotelDep = schedule.bestHotelPath.get(dayNb);
+        Hotel hotelArr = schedule.bestHotelPath.get(dayNb + 1);
+
+        TouristicSite globalBestCandidate = null;
+        int globalBestPos = -1;
+        double globalBestDetour = Double.MAX_VALUE;
+
+        // Boucle externe : chaque candidat non visité
+        for (TouristicSite candidate : Instance.getTouristicSites()) {
+            if (schedule.siteAlreadyVisited.contains(candidate) || day.chosenSites.contains(candidate)) {
+                continue;
+            }
+
+            double bestDetourForCandidate = Double.MAX_VALUE;
+            int bestPosForCandidate = -1;
+
+            // Boucle interne : chaque position d'insertion possible
+            int nbPos = day.chosenSites.size() + 1; // positions : 0 = avant premier site, ..., size = après dernier site
+            for (int j = 0; j < nbPos; j++) {
+                Site prev = (j == 0) ? hotelDep : day.chosenSites.get(j - 1);
+                Site next = (j == day.chosenSites.size()) ? hotelArr : day.chosenSites.get(j);
+
+                double distToPrev    = Instance.getDistMatrix(prev, candidate);
+                double distToNext    = Instance.getDistMatrix(candidate, next);
+                double distDirect    = Instance.getDistMatrix(prev, next);
+                double detour        = distToPrev + distToNext - distDirect;
+
+                // Vérifier les fenêtres horaires
+                // arrivalTime approximatif en utilisant la distance parcourue + détour partiel
+                double arrivalTime = day.dailyDistance + distToPrev;
+                if (arrivalTime > candidate.closingTime) continue;
+
+                double waitingTime   = Math.max(0, candidate.openingTime - arrivalTime);
+                double realCost      = detour + waitingTime;
+
+                // Vérifier le budget distance
+                if (day.dailyDistance + realCost > Instance.tD[dayNb]) continue;
+
+                if (realCost < bestDetourForCandidate) {
+                    bestDetourForCandidate = realCost;
+                    bestPosForCandidate = j;
+                }
+            }
+
+            // Ce candidat est-il le meilleur global ?
+            if (bestPosForCandidate != -1 && bestDetourForCandidate < globalBestDetour) {
+                globalBestDetour = bestDetourForCandidate;
+                globalBestCandidate = candidate;
+                globalBestPos = bestPosForCandidate;
+            }
+        }
+
+        // Insérer le meilleur candidat trouvé
+        if (globalBestCandidate != null) {
+            Site prev = (globalBestPos == 0) ? hotelDep : day.chosenSites.get(globalBestPos - 1);
+            Site next = (globalBestPos == day.chosenSites.size()) ? hotelArr : day.chosenSites.get(globalBestPos);
+            double distDirect = Instance.getDistMatrix(prev, next);
+
+            day.chosenSites.add(globalBestPos, globalBestCandidate);
+            day.dailyDistance += globalBestDetour; // globalBestDetour inclut déjà le - distDirect via realCost...
+            // Correction : globalBestDetour = detour + waitingTime, et detour = distToPrev + distToNext - distDirect
+            // donc dailyDistance + globalBestDetour est correct
+            day.dailyScore += globalBestCandidate.score;
+            schedule.siteAlreadyVisited.add(globalBestCandidate);
+        }
+    }
+
 }
 
