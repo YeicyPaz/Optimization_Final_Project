@@ -8,7 +8,7 @@ public class Schedule {
 
     // Pour la recherche locale
     private double bestGlobalScore = -1.0;
-    private Schedule bestGlobalSchedule = null;
+    public Schedule bestGlobalSchedule = null;
     public Schedule(){
         for (int d = 0; d < daysNb; d++) {
             travelDays.add(new Day(d)); // Initialisation of nbDays days in the schedule
@@ -57,6 +57,7 @@ public class Schedule {
             double bestDetour = 0.0; //détour pour visiter le site
             double bestDepartureTime = 0.0;
 
+            double arrivalTime = 0.0;
             for (TouristicSite site : Instance.touristicSites
             ) {
                 if (siteAlreadyVisited.contains(site)){
@@ -64,14 +65,20 @@ public class Schedule {
                 }
                 // détour(site) = dist(current → site) + dist(site → hotelArrivee)
 
-
                 double distToSite = Instance.getDistMatrix(current, site);
                 double distToHotel = Instance.getDistMatrix(site, hotelArr);
                 // on enlève la distance de l'ancien chemin qui aurait été parcouru si on n'avait pas visité le site
                 double distDirect = Instance.getDistMatrix(current, hotelArr); // à enlever si on ajoute le site à l'itinéraire
                 double detourDistance = distToSite + distToHotel;
 
-                double arrivalTime   = distanceTraveled - distDirect + distToSite;
+
+                if(distanceTraveled!= 0){
+                     arrivalTime   = distanceTraveled - distDirect + distToSite;
+                }else {
+                     arrivalTime   = distanceTraveled + distToSite;
+
+                }
+
 
                 //verification du budget distance
                 //si le détour est trop grand on ignore le site
@@ -79,7 +86,6 @@ public class Schedule {
                 double waitingTime   = Math.max(0, site.openingTime - arrivalTime); //prend un temps d'attente si existe sinon 0
                 double departureTime = arrivalTime + waitingTime; //soit on part dès qu'on est arrivé soit dès que cela ouvre
                 double realCost = detourDistance + waitingTime;
-
                 if(distanceTraveled - distDirect + realCost > distanceLeft) continue;
 
                 double ratio = site.score / realCost; //score/détour
@@ -105,7 +111,12 @@ public class Schedule {
             System.out.println("the best site to visit is "+ best.id + " with a score of "+ best.score + " and a detour of "+ bestDetour + " and a departure time of "+ bestDepartureTime);
             System.out.println("the distance to the site is "+ distToSite + " and the distance to the hotel is "+ distToHotel + " and the direct distance is "+ distDirect);
             siteAlreadyVisited.add(best);
-            distanceTraveled += bestDetour;
+            if(distanceTraveled> 0){
+                distanceTraveled += bestDetour - distDirect;
+            }else{
+                distanceTraveled += bestDetour ;
+            }
+
             distanceLeft = distanceLeft + distDirect - bestDetour;
             counterScore += best.score;
             current = best; // on se déplace vers le site visité
@@ -361,7 +372,7 @@ public class Schedule {
         clonedSchedule.daysNb = this.daysNb;
 
         //les routes de hotels ne change pas, donc on peut mantenir la reference
-        clonedSchedule.validHotelPaths = this.validHotelPaths;
+        clonedSchedule.bestHotelPath = this.bestHotelPath;
 
         return clonedSchedule;
     }
@@ -370,11 +381,17 @@ public class Schedule {
     //-----------------------------EXECUTION RUN VNS------------------
     public void executeVNS(Schedule initialSchedule, List<Hotel> currentHotelPath) {
         long startTime = System.currentTimeMillis();
-        long maxDuration = 120 * 1000; //120 seconds in miliseconds
+        long maxDuration = 25 * 1000; //120 seconds in miliseconds
 
         //on utilise la solution greedy
-        Schedule bestSchedule = initialSchedule.cloneSchedule();
-        this.bestGlobalScore = totalScore(bestSchedule.travelDays);
+
+        //la route qu'on va detruir et repare constantement
+        Schedule currentSchedule = initialSchedule.cloneSchedule();
+
+        //ici on garde le meilleur schedule qu'on a trouver et on va pas toucher
+        this.bestGlobalSchedule = currentSchedule.cloneSchedule();
+        this.bestGlobalScore = totalScore(bestGlobalSchedule.travelDays);
+
         int k_max = 3; //on va utiliser 3 neighbohood differents
 
         System.out.println("-----------------------------------------------");
@@ -387,28 +404,38 @@ public class Schedule {
             while (k <= k_max && (System.currentTimeMillis() - startTime) < (maxDuration - 1000)) {
 
                 //SHAKING
-                //on clone la meilleure solution actuelle (celle qu'on a trouvée avec greedy) pour éviter de l'endommager et on secoue
-                Schedule shakenSchedule = bestSchedule.cloneSchedule();
+                //on clone et secoue la meilleure solution actuelle (celle qu'on a trouvée avec greedy) pour éviter de l'endommager, PAS la meilleur de notre historial
+                Schedule shakenSchedule = currentSchedule.cloneSchedule();
                 shakenSchedule.shake(k, currentHotelPath); //revisar
 
                 //LOCAL SEARCH
                 //klau methode pour prendre le shakenSchedule et l'ameliorer
-                Schedule localOptimum = shakenSchedule.applyLocalSearch(shakenSchedule,currentHotelPath); // REEMPLAZAR LUEGO POR: shakenSchedule.applyLocalSearch()
+                Schedule localOptimum = shakenSchedule.applyLocalSearch(shakenSchedule,currentHotelPath);
 
                 //mise à jour
                 double newScore = totalScore(localOptimum.travelDays);
+                double currentScore = totalScore(currentSchedule.travelDays);
 
-                if (newScore > this.bestGlobalScore) {
-                    //on a trouvé une amelioration
-                    bestSchedule = localOptimum;
-                    this.bestGlobalScore = newScore;
-                    k = 1;// vu qu'on a amelioré, on essaie à noveau avec une perturbation plus petite
+                //on a reussi  à ameliorer notre record local de ce qui est mondial?
+                if (newScore > currentScore) {
+                    currentSchedule = localOptimum; // Aceptamos el cambio temporal
+                    k = 1; // Volvemos a empezar con N1
+
+                    // 2. ¿Esta nueva solución de trabajo rompe el RÉCORD MUNDIAL?
+                    if (newScore > this.bestGlobalScore) {
+                        this.bestGlobalSchedule = currentSchedule.cloneSchedule();
+                        this.bestGlobalScore = newScore;
+                        System.out.println("NOUVELLE Score TROUVÉ: " + this.bestGlobalScore);
+                    }
                 } else {
                     k++; //on n'a pas amelioré, alors on fait une soute plus grand
                 }
             }
+            //si "k" surmonte à k_max, signifie que ni N3 peut ameliorer la solution actuelle
+            //donc, le Vns returne à se devenir le dernier meilleur record conneu pour l'essayer d'un autre maniere
+            currentSchedule= this.bestGlobalSchedule.cloneSchedule();
         }
-        this.bestGlobalSchedule = bestSchedule;
+
 //        System.out.println("the best GLOBAL SCORE after VNS= " + bestGlobalScore);
     }
 
@@ -517,9 +544,113 @@ public class Schedule {
             }
         }
         else if(k==2){
-            //voisin 2
+            // N2: INTERCAMBIO ENTRE DÍAS (Swap de un sitio del Día 1 con uno del Día 2)
+
+            // 1. Necesitamos al menos 2 días para hacer un intercambio
+            if (this.daysNb < 2) return;
+
+            for (int trys =0; trys <30; trys++){
+                // 2. Elegimos dos días aleatorios distintos
+                int dayIdx1 = rand.nextInt(this.daysNb);
+                int dayIdx2 = rand.nextInt(this.daysNb);
+                while (dayIdx1 == dayIdx2) {
+                    dayIdx2 = rand.nextInt(this.daysNb); // Nos aseguramos de que no sean el mismo día
+                }
+
+                Day day1 = this.travelDays.get(dayIdx1);
+                Day day2 = this.travelDays.get(dayIdx2);
+
+                // Si alguno de los días está vacío, no podemos intercambiar nada
+                if (day1.chosenSites.isEmpty() || day2.chosenSites.isEmpty()) return;
+
+                // 3. Elegimos un sitio aleatorio de cada día
+                int siteIdx1 = rand.nextInt(day1.chosenSites.size());
+                int siteIdx2 = rand.nextInt(day2.chosenSites.size());
+
+                TouristicSite site1 = (TouristicSite) day1.chosenSites.get(siteIdx1);
+                TouristicSite site2 = (TouristicSite) day2.chosenSites.get(siteIdx2);
+
+                // 4. Creamos secuencias de prueba para ambos días
+                List<TouristicSite> testSeq1 = new ArrayList<>();
+                for (Object obj : day1.chosenSites) testSeq1.add((TouristicSite) obj);
+
+                List<TouristicSite> testSeq2 = new ArrayList<>();
+                for (Object obj : day2.chosenSites) testSeq2.add((TouristicSite) obj);
+
+                // 5. Hacemos el intercambio (Swap) en las listas de prueba
+                testSeq1.set(siteIdx1, site2);
+                testSeq2.set(siteIdx2, site1);
+
+                // 6. Evaluamos si ambos días siguen siendo válidos con el cambio
+                Hotel hotelDep1 = currentHotelPath.get(dayIdx1);
+                Hotel hotelArr1 = currentHotelPath.get(dayIdx1 + 1);
+                double[] res1 = evaluateSequence(dayIdx1, testSeq1, hotelDep1, hotelArr1);
+
+                Hotel hotelDep2 = currentHotelPath.get(dayIdx2);
+                Hotel hotelArr2 = currentHotelPath.get(dayIdx2 + 1);
+                double[] res2 = evaluateSequence(dayIdx2, testSeq2, hotelDep2, hotelArr2);
+
+                // 7. Si AMBOS días respetan la distancia y el tiempo, aplicamos el cambio
+                if (res1[0] == 1.0 && res2[0] == 1.0) {
+
+                    day1.chosenSites.clear();
+                    day1.chosenSites.addAll(testSeq1);
+                    day1.setDailyDistance(res1[1]);
+                    day1.setDailyScore(res1[2]);
+
+                    day2.chosenSites.clear();
+                    day2.chosenSites.addAll(testSeq2);
+                    day2.setDailyDistance(res2[1]);
+                    day2.setDailyScore(res2[2]);
+
+                    // Nota: No necesitamos actualizar 'siteAlreadyVisited' porque ambos sitios
+                    // ya estaban visitados, solo cambiaron de día.
+                }
+            }
+
         } else if(k==3){
-            //voisin 3
+            // N3: DESTRUCCIÓN MASIVA (Ruin & Recreate)
+            // Esto arranca varios sitios de raíz para hacer un hueco gigante
+
+            // 1. Elegimos un día aleatorio
+            int dayIdx = rand.nextInt(this.daysNb);
+            Day randomDay = this.travelDays.get(dayIdx);
+
+            // Si el día tiene 2 sitios o menos, no vale la pena destruirlo
+            if (randomDay.chosenSites.size() <= 2) return;
+
+            // 2. Decidimos cuántos sitios borrar (entre 2 y 4 sitios)
+            int sitesToRemove = 2 + rand.nextInt(3);
+            // Nos aseguramos de no borrar más sitios de los que hay
+            sitesToRemove = Math.min(sitesToRemove, randomDay.chosenSites.size());
+
+            // 3. Borramos los sitios al azar y los quitamos de la lista de "ya visitados"
+            for (int i = 0; i < sitesToRemove; i++) {
+                int idxToRemove = rand.nextInt(randomDay.chosenSites.size());
+                TouristicSite removedSite = (TouristicSite) randomDay.chosenSites.remove(idxToRemove);
+
+                // Lo devolvemos a la bolsa de sitios disponibles
+                this.siteAlreadyVisited.remove(removedSite);
+            }
+
+            // 4. Recalculamos cuánto tiempo y distancia libre nos quedó
+            Hotel hotelDep = currentHotelPath.get(dayIdx);
+            Hotel hotelArr = currentHotelPath.get(dayIdx + 1);
+
+            List<TouristicSite> remainingSites = new ArrayList<>();
+            for (Object obj : randomDay.chosenSites) remainingSites.add((TouristicSite) obj);
+
+            double[] result = evaluateSequence(dayIdx, remainingSites, hotelDep, hotelArr);
+
+            // Actualizamos el día con los nuevos valores
+            if (result[0] == 1.0) {
+                randomDay.setDailyDistance(result[1]);
+                randomDay.setDailyScore(result[2]);
+            }
+
+            // Nota: Aquí NO hacemos Local Search porque el VNS principal
+            // llamará a applyLocalSearch() justo después de salir del shake.
+            // Esa Búsqueda Local verá el hueco enorme y lo llenará inteligentemente.
         }
     }
 }
