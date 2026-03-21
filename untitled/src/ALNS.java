@@ -147,7 +147,7 @@ public class ALNS {
                     }
                     break;
                 case 1:
-                    // Autre méthode de réparation
+
                     break;
                 case 2:
                     // Autre méthode de réparation
@@ -190,7 +190,7 @@ public class ALNS {
     }
 
 
-    /*private void repairWithRegret(Schedule schedule, Day day, Hotel hotelDep, Hotel hotelArr) {
+    private void repairWithRegret(Schedule schedule, Day day, Hotel hotelDep, Hotel hotelArr) {
         int dayNb = day.index;
         Site lastSite = day.getLastSite();
 
@@ -256,7 +256,68 @@ public class ALNS {
             System.out.println("Ajout du site " + bestSite.id + " avec un regret de " + maxRegret);
             System.out.println("Nouvelle distance totale : " + day.dailyDistance);
         }
-    }*/
+    }
+
+    private double calculateRegret(Schedule schedule, Day day, TouristicSite site, Hotel hotelDep, Hotel hotelArr) {
+        Site lastSite = day.getLastSite();
+        if (lastSite == null) {
+            lastSite = hotelDep;
+        }
+
+        // Calculer le score du site
+        double distToSite = Instance.getDistMatrix(lastSite, site);
+        double distToHotel = Instance.getDistMatrix(site, hotelArr);
+        double distDirect = Instance.getDistMatrix(lastSite, hotelArr);
+        double detourDistance = distToSite + distToHotel - distDirect;
+
+        double arrivalTime = day.dailyDistance + distToSite;
+        if (arrivalTime > site.closingTime) {
+            return -1; // Si le site n'est pas accessible, le regret est négatif
+        }
+
+        double waitingTime = Math.max(0, site.openingTime - arrivalTime);
+        double realCost = detourDistance + waitingTime;
+
+        if (day.dailyDistance + distToSite > Instance.tD[day.index]) {
+            return -1; // Si le site dépasse le budget distance, le regret est négatif
+        }
+
+        double siteScore = site.score / realCost;
+
+        // Trouver le deuxième meilleur site
+        double secondBestScore = -1.0;
+        for (TouristicSite otherSite : Instance.touristicSites) {
+            if (schedule.siteAlreadyVisited.contains(otherSite) || day.chosenSites.contains(otherSite) || otherSite == site) {
+                continue;
+            }
+
+            double otherDistToSite = Instance.getDistMatrix(lastSite, otherSite);
+            double otherDistToHotel = Instance.getDistMatrix(otherSite, hotelArr);
+            double otherDistDirect = Instance.getDistMatrix(lastSite, hotelArr);
+            double otherDetourDistance = otherDistToSite + otherDistToHotel - otherDistDirect;
+
+            double otherArrivalTime = day.dailyDistance + otherDistToSite;
+            if (otherArrivalTime > otherSite.closingTime) {
+                continue;
+            }
+
+            double otherWaitingTime = Math.max(0, otherSite.openingTime - otherArrivalTime);
+            double otherRealCost = otherDetourDistance + otherWaitingTime;
+
+            if (day.dailyDistance + otherDistToSite > Instance.tD[day.index]) {
+                continue;
+            }
+
+            double otherScore = otherSite.score / otherRealCost;
+            if (otherScore > secondBestScore) {
+                secondBestScore = otherScore;
+            }
+        }
+
+        // Le regret est la différence entre le meilleur score et le deuxième meilleur score
+        return siteScore - secondBestScore;
+    }
+
     private ArrayList<ArrayList<Day>> generateNeighbors(Schedule schedule, ArrayList<Day> days) {
         ArrayList<ArrayList<Day>> neighbors = new ArrayList<>();
         System.out.println("Génération des voisins...");
@@ -300,83 +361,6 @@ public class ALNS {
         return description.toString();
     }
 
-
-    private void repairWithTabuSearch(Schedule schedule, ArrayList<Day> days, TabuList tabuList, int maxIterations) {
-        System.out.println("Début de la réparation avec recherche tabou");
-
-        double bestScore = schedule.totalScore(days);
-        System.out.println("Score initial: " + bestScore);
-
-        ArrayList<Day> bestDays = cloneDays(days);
-
-        int iterationsWithoutImprovement = 0;
-        int totalIterations = 0;
-
-        while (totalIterations < maxIterations && iterationsWithoutImprovement < maxIterations / 2) {
-            System.out.println("\nItération " + (totalIterations + 1) + "/" + maxIterations);
-
-            ArrayList<Day> currentDays = cloneDays(days);
-            double currentScore = schedule.totalScore(currentDays);
-            System.out.println("Score actuel: " + currentScore);
-
-            // Générer des voisins
-            ArrayList<ArrayList<Day>> neighbors = generateNeighbors(schedule, currentDays);
-            System.out.println("Nombre de voisins générés: " + neighbors.size());
-
-            // Trouver le meilleur voisin non tabou
-            ArrayList<Day> bestNeighbor = null;
-            double bestNeighborScore = Double.NEGATIVE_INFINITY;
-            String bestMove = "";
-
-            for (ArrayList<Day> neighbor : neighbors) {
-                double neighborScore = schedule.totalScore(neighbor);
-                String move = generateMoveDescription(currentDays, neighbor);
-
-                System.out.println("Voisin: " + move + " avec un score de " + neighborScore);
-
-                if (!tabuList.contains(move) || neighborScore > bestScore) { // Critère d'aspiration
-                    if (neighborScore > bestNeighborScore) {
-                        bestNeighborScore = neighborScore;
-                        bestNeighbor = neighbor;
-                        bestMove = move;
-                    }
-                }
-            }
-
-            if (bestNeighbor != null) {
-                System.out.println("Meilleur voisin sélectionné: " + bestMove + " avec un score de " + bestNeighborScore);
-                days = cloneDays(bestNeighbor);
-                tabuList.add(bestMove);
-
-                if (bestNeighborScore > bestScore) {
-                    bestScore = bestNeighborScore;
-                    bestDays = cloneDays(bestNeighbor);
-                    iterationsWithoutImprovement = 0;
-                    System.out.println("Nouveau meilleur score: " + bestScore);
-                } else {
-                    iterationsWithoutImprovement++;
-                    System.out.println("Pas d'amélioration, itérations sans amélioration: " + iterationsWithoutImprovement);
-                }
-            } else {
-                iterationsWithoutImprovement++;
-                System.out.println("Aucun voisin acceptable trouvé, itérations sans amélioration: " + iterationsWithoutImprovement);
-            }
-
-            totalIterations++;
-        }
-
-        System.out.println("\nFin de la réparation avec recherche tabou");
-        System.out.println("Meilleur score trouvé: " + bestScore);
-
-        // Mettre à jour les jours avec la meilleure solution trouvée
-        for (int dayNb = 0; dayNb < schedule.daysNb; dayNb++) {
-            schedule.travelDays.get(dayNb).chosenSites.clear();
-            schedule.travelDays.get(dayNb).chosenSites.addAll(bestDays.get(dayNb).chosenSites);
-            schedule.travelDays.get(dayNb).dailyDistance = bestDays.get(dayNb).dailyDistance;
-            schedule.travelDays.get(dayNb).dailyScore = bestDays.get(dayNb).dailyScore;
-            System.out.println("Jour " + dayNb + " mis à jour avec les sites: " + bestDays.get(dayNb).chosenSites);
-        }
-    }
 
 
     private void repairWithBestScore(Schedule schedule, Day day) {
