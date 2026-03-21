@@ -4,7 +4,7 @@ public class Schedule {
     ArrayList<Day> travelDays = new ArrayList<>(); //les D jour du voyage
     int daysNb = Instance.d;            //nombre de jours (D)
     public Set<TouristicSite> siteAlreadyVisited;
-    public List<List<Hotel>> validHotelPaths = new ArrayList<>(); // combinations with fixed start and end. TOUTES les sequence valides des hotels
+    public List<Hotel> bestHotelPath = new ArrayList<>(); // best paths parmis les hotels choisi avec l'heuristique
 
     // Pour la recherche locale
     private double bestGlobalScore = -1.0;
@@ -230,18 +230,41 @@ public class Schedule {
     }
 
 
-            // On ajoute cet hôtel au chemin et on recurse sur le jour suivant
-            currentPath.add(nextHotel);
-            exploreHotels(currentPath, nextHotel, day + 1, hotelEnd);
-            currentPath.remove(currentPath.size() - 1); // backtrack
+    /*
+     * Permet de savoir à quelle distance se trouve un hôtel par rapport à la ligne droite idéale entre l’hôtel de départ (start) et l’hôtel d’arrivée (end)
+     *  Cela permet d’éviter de choisir des hôtels trop éloignés de ce chemin idéal
+     */
+    private double calculateDistanceFromSegment(Hotel hotel, Hotel start, Hotel end) {
+        // Coordonnées des hôtels (à adapter selon ta structure de données)
+        double x = hotel.getCoordinates().x, y = hotel.getCoordinates().y;
+        double x1 = start.getCoordinates().x, y1 = start.getCoordinates().y;
+        double x2 = end.getCoordinates().x, y2 = end.getCoordinates().y;
+
+        // Calcul de la distance entre le point (x, y) et le segment [(x1, y1), (x2, y2)]
+        double segmentLength = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)); // calculer la longueur du segment de ligne entre les points (x1, y1) et (x2, y2) en utilisant la formule de la distance euclidienne
+        if (segmentLength == 0) { //si c'est un point on calcule simplement la distance entre les deux points
+            return Math.sqrt(Math.pow(x - x1, 2) + Math.pow(y - y1, 2));
         }
+
+        //produit scalaire
+        double t = ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / (segmentLength * segmentLength); //position relative de la projection orthogonale du point (x, y) sur le segment
+        t = Math.max(0, Math.min(1, t));    // si l'hotel est en dehors du segment on le projette sur le segment le plus proche
+
+        double projectionX = x1 + t * (x2 - x1);
+        double projectionY = y1 + t * (y2 - y1);
+
+        return Math.sqrt(Math.pow(x - projectionX, 2) + Math.pow(y - projectionY, 2));
     }
 
 
+    public double totalScore(ArrayList<Day> days){
         double count = 0.0;
+        for (Day day: days
         ) {
             count += day.dailyScore;
+        }return count;
     }
+
 
     //------------------LOCAL SEARCH----------------------
     public Schedule applyLocalSearch(Schedule currentSchedule, List<Hotel> currentHotelPath){
