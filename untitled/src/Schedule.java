@@ -46,12 +46,12 @@ public class Schedule {
         double distanceLeft = Instance.tD[dayNb]; // distance restante
         double counterScore = 0.0;
 
-
         while (true){
             TouristicSite best = null;
             double bestSiteRatio = -1.0; //score/distance
             double bestDetour = 0.0; //détour pour visiter le site
             double bestDepartureTime = 0.0;
+            double bestArrivalTime = 0.0;
 
             double arrivalTime = 0.0;
             for (TouristicSite site : Instance.touristicSites
@@ -90,7 +90,7 @@ public class Schedule {
                     best = site;
                     bestDetour = realCost;
                     bestDepartureTime = departureTime;
-
+                    bestArrivalTime = arrivalTime;
                 }
             }
             if(best == null){
@@ -102,6 +102,8 @@ public class Schedule {
             double distDirect = Instance.getDistMatrix(current, hotelArr);
             double detourDistance = distToSite + distToHotel - distDirect;
             day.addChosenSite(best);
+            day.departureTimes.add(bestDepartureTime);
+            day.arrivalTimes.add(bestArrivalTime);
             siteAlreadyVisited.add(best);
             if(distanceTraveled> 0){
                 distanceTraveled += bestDetour - distDirect;
@@ -160,15 +162,9 @@ public class Schedule {
 
         //on trie les candidats selon l'heuristique qui combine les différents scores (nombre de sites, score total, distance du segment,et horaires d'ouverture)
         Collections.sort(candidates, (s1, s2) -> Double.compare(s2.score1, s1.score1)); // Tri décroissant selon le score heuristique
-        System.out.println("---------------after sorting candidates for day --------------" );
-        for (Score score: candidates
-        ) {
-            System.out.println(" hotel " + score.site.id + " and his score with the heuristic: " + score.score1);
-        }
+
         bestHotelPath.add(firstHotel);
-        System.out.println("the first hotel is added correctly: "+ firstHotel.id);
         bestHotelPath.add(lastHotel);
-        System.out.println("the last hotel is added correctly: "+ lastHotel.id);
 
         int dayIndex = 0;//the index of the day
 
@@ -185,24 +181,22 @@ public class Schedule {
                     double distToHotel = Instance.getDistMatrix(bestHotelPath.get(j-1), candidateHotel);
                     double detourDistance = distToSite + distToHotel ;
                     if(distToSite > Instance.tD[dayIndex] || distToHotel > Instance.tD[dayIndex]){ // si le detour est trop grand on ne l'insère pas
-                        System.out.println("the hotel "+ candidateHotel.id + " is too far from the hotel of day "+ (bestInsertionIndex-1) + " and the hotel of day "+ bestInsertionIndex + " with a detour of "+ bestInsertionDetour);
+                        //System.out.println("the hotel "+ candidateHotel.id + " is too far from the hotel of day "+ (bestInsertionIndex-1) + " and the hotel of day "+ bestInsertionIndex + " with a detour of "+ bestInsertionDetour);
                         continue;
                     }
                     if(detourDistance< bestInsertionDetour){
                         bestInsertionDetour = detourDistance;
                         bestInsertionIndex = j;
-                        System.out.println("test hotel "+ bestHotelPath.get(j-1).id + " " + bestHotelPath.get(j).id);
+                        //System.out.println("test hotel "+ bestHotelPath.get(j-1).id + " " + bestHotelPath.get(j).id);
                     }
                 }
-                System.out.println("the best insertion index for the hotel "+ candidateHotel.id + " is: "+ bestInsertionIndex + " with a detour of "+ bestInsertionDetour);
-                System.out.println("the index indicates that the hotel "+ candidateHotel.id + " will be inserted between the hotel of day "+ (bestInsertionIndex-1) + " and the hotel of day "+ bestInsertionIndex);
+                //System.out.println("the best insertion index for the hotel "+ candidateHotel.id + " is: "+ bestInsertionIndex + " with a detour of "+ bestInsertionDetour);
+                //System.out.println("the index indicates that the hotel "+ candidateHotel.id + " will be inserted between the hotel of day "+ (bestInsertionIndex-1) + " and the hotel of day "+ bestInsertionIndex);
 
                 bestHotelPath.add(bestInsertionIndex, candidateHotel);
                 dayIndex++;
             }
         }
-
-
 
 
     }
@@ -262,6 +256,7 @@ public class Schedule {
             count += day.dailyScore;
         }return count;
     }
+
 
 
 }

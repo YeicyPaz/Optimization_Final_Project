@@ -1,10 +1,13 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public class Day { //un voyage par jour
 
     int index;
     Hotel chosenHotel; //the chosen hotel for the night
     ArrayList<TouristicSite> chosenSites; // the chosen sites to visit in the day
+    ArrayList<Double> departureTimes; // the departure times for each site visited in the day
+    ArrayList<Double> arrivalTimes; // the arrival times for each site visited in the day
     double dailyDistance;
     double dailyScore;
 
@@ -17,6 +20,8 @@ public class Day { //un voyage par jour
         this.chosenSites = new ArrayList<TouristicSite>();
         dailyDistance = 0.0;
         dailyScore = 0.0;
+        this.departureTimes = new ArrayList<Double>();
+        this.arrivalTimes = new ArrayList<Double>();
     }
     public void removeSite(int siteInx){
         TouristicSite site = chosenSites.get(siteInx);
@@ -88,6 +93,8 @@ public class Day { //un voyage par jour
         }
         return chosenSites.get(chosenSites.size() - 1); // Retourner le dernier site visité
     }
+
+
 
     public void sitesToString() {
         for (Site site: chosenSites
