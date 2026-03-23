@@ -57,7 +57,9 @@ public class Main {
         //  ================================  VNS ===================//       execution de VNS avec la route choisi
         long starTimeGlobal = System.currentTimeMillis();
 
-        schedule1.executeVNS(schedule1, schedule1.bestHotelPath);
+        VNS vnsAlgorithm = new VNS();
+        vnsAlgorithm.executeVNS(schedule1, schedule1.bestHotelPath);
+
 
         long endTimeGlobal = System.currentTimeMillis();
         double timeInSeconds =(endTimeGlobal- starTimeGlobal)/1000.0;
@@ -68,8 +70,8 @@ public class Main {
         System.out.println("Execution time: " + timeInSeconds+ "seconds");
 
         //on parcour le meillieur schedule trouvé par le VNS, On montre jour par jour
-        for (int i = 0; i< schedule1.bestGlobalSchedule.travelDays.size(); i++){
-            Day day = (Day) schedule1.bestGlobalSchedule.travelDays.get(i);
+        for (int i = 0; i< vnsAlgorithm.bestGlobalSchedule.travelDays.size(); i++){
+            Day day = (Day) vnsAlgorithm.bestGlobalSchedule.travelDays.get(i);
             System.out.println("Day: " + i + " | distance: " + String.format("%.2f", day.dailyDistance) + " | Score: "+ day.dailyScore);
             System.out.print("Sites visited: ");
             for (Object obj: day.chosenSites){
@@ -81,7 +83,7 @@ public class Main {
         }
         System.out.println("--------------------------------------");
         System.out.println("SCORE GREEDY INITIAL: " + schedule1.totalScore(schedule1.travelDays));
-        System.out.println("SCORE TOTAL VNS FINAL: " +schedule1.totalScore(schedule1.bestGlobalSchedule.travelDays));
+        System.out.println("SCORE TOTAL VNS FINAL: " +vnsAlgorithm.bestGlobalScore);
         System.out.println("-------------------------------------");
 
         } else {
