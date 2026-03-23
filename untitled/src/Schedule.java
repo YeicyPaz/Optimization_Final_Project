@@ -288,13 +288,11 @@ public class Schedule {
         }return count;
     }
 
-
     //------------------LOCAL SEARCH----------------------
     public Schedule applyLocalSearch(Schedule currentSchedule, List<Hotel> currentHotelPath){
         for(int dayNb=0; dayNb < currentSchedule.daysNb; dayNb++){
             Hotel hotelDep = currentHotelPath.get(dayNb);
             Hotel hotelArr = currentHotelPath.get(dayNb +1);
-            apply2OptForDay(currentSchedule, dayNb, hotelDep, hotelArr);
         }
 
         boolean improved= true;
@@ -316,7 +314,7 @@ public class Schedule {
                         unvisited.add(s);
                     }
                 }
-                //fase D'INSERTION
+                //---------fase D'INSERTION-----------
                 //on essaie d'inserer ces sites dans le jour actuel
                 for (TouristicSite candidateSite: unvisited){
 
@@ -368,28 +366,26 @@ public class Schedule {
                 }
                 if (improved) break; //si on trouve une amelioration pour ce jour-la, on redemarer la recherche general
 
-                // PHASE de REMPLACEMENT
+                // -----------PHASE DE REMPLACEMENT--------
                 // Si rien de nouveau ne se produit, nous essayons d’en trouver un meilleur.
                 // ==========================================
                 for (int i = 0; i < day.chosenSites.size(); i++) {
                     TouristicSite visitedSite = (TouristicSite) day.chosenSites.get(i);
 
                     for (TouristicSite candidateSite : unvisited) {
-                        // REGLA CLAVE: Solo intentamos el cambio si el candidato da MÁS puntos,
-                        // o si da los mismos puntos pero sospechamos que ahorra distancia.
+                        // on a essayé le changement que si le candidat donne plus de points, ou s’il donne les mêmes points mais on soupçonne qu’il économise la distance.
                         if (candidateSite.score < visitedSite.score) continue;
 
                         List<TouristicSite> testSequence = new ArrayList<>();
                         for (Object obj : day.chosenSites) testSequence.add((TouristicSite) obj);
 
-                        // Hacemos el trueque (Swap) en la misma posición
+                        // on a fait le swap sur la même position
                         testSequence.set(i, candidateSite);
 
                         double[] result = currentSchedule.evaluateSequence(dayNb, testSequence, hotelDep, hotelArr);
 
                         if (result[0] == 1.0) {
-                            // ¿Es realmente mejor esta nueva ruta?
-                            // Sí, si el score sube, O si el score es igual pero gastamos menos distancia
+                            // si le nouvel itinéraire est meilleur, le score augmente, OU si le score est le même mais que nous passons moins de distance
                             if (result[2] > day.dailyScore || (result[2] == day.dailyScore && result[1] < day.dailyDistance)) {
 
                                 day.chosenSites.clear();
@@ -397,66 +393,23 @@ public class Schedule {
                                 day.setDailyDistance(result[1]);
                                 day.setDailyScore(result[2]);
 
-                                // Actualizamos los visitados
+                                // on met à jour les personnes visitées
                                 currentSchedule.siteAlreadyVisited.remove(visitedSite);
                                 currentSchedule.siteAlreadyVisited.add(candidateSite);
 
                                 improved = true;
-                                break; // Rompemos el bucle de candidatos
+                                break; //pour la boucle des candidats
                             }
                         }
                     }
-                    if (improved) break; // Rompemos el bucle de sitios del día
+                    if (improved) break; // pour le sites du jour
                 }
 
-                if (improved) break; // Reiniciamos el While principal si hubo reemplazo
+                if (improved) break; // dans la bucle principale si il y a eu un remplacement
             }
         }
         return currentSchedule;
     }
-
-    // AMÉLIORATION: 2-opt pour réorganiser l’itinéraire d’un jour
-    public boolean apply2OptForDay(Schedule currentSchedule, int dayNb,
-                                   Hotel hotelDep, Hotel hotelArr) {
-        Day day = currentSchedule.travelDays.get(dayNb);
-        if (day.chosenSites.size() < 2) return false;
-
-        boolean improved = false;
-        boolean anyImprovement= true;
-
-       while (anyImprovement){
-           anyImprovement= false;
-           // Probamos invertir cada par de segmentos posibles
-           for (int i = 0; i < day.chosenSites.size() - 1; i++) {
-               for (int j = i + 1; j < day.chosenSites.size(); j++) {
-
-                   // Creamos la secuencia con el segmento [i..j] invertido
-                   List<TouristicSite> newSeq = new ArrayList<>();
-                   for (int k = 0; k < i; k++)
-                       newSeq.add((TouristicSite) day.chosenSites.get(k));
-                   // Añadir [i..j] al revés
-                   for (int k = j; k >= i; k--)
-                       newSeq.add((TouristicSite) day.chosenSites.get(k));
-                   for (int k = j + 1; k < day.chosenSites.size(); k++)
-                       newSeq.add((TouristicSite) day.chosenSites.get(k));
-
-                   double[] result = currentSchedule.evaluateSequence(dayNb, newSeq, hotelDep, hotelArr);
-
-                   // ¿La nueva ruta es válida Y tiene menor distancia (dejando espacio para más sitios)?
-                   if (result[0] == 1.0 && result[1] < day.dailyDistance - 0.001) {
-                       day.chosenSites.clear();
-                       day.chosenSites.addAll(newSeq);
-                       day.setDailyDistance(result[1]);
-                       day.setDailyScore(result[2]);
-                       improved = true;
-                       anyImprovement= true;
-                   }
-               }
-           }
-       }
-        return improved;
-    }
-
 
     //--------------VNS SOLUTION------------------------
     //on fait la clonation deu schedule pour eviter de modifier la list original et que le resultat soit pire
@@ -752,7 +705,7 @@ public class Schedule {
 
 
             //le VNS principal appellera applyLocalSearch() juste après avoir quitté le shake.
-            //Cette Recherche Locale verra l’énorme trou et le remplira intelligemment.
+            //la recherche Locale verra l’énorme trou et le remplira intelligemment.
         }
     }
 }
