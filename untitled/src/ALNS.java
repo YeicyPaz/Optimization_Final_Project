@@ -52,8 +52,6 @@ public class ALNS {
                 writer.newLine();
             }
 
-            System.out.println("Fichier de solution généré : " + fileName);
-
         } catch (IOException e) {
             System.err.println("Erreur lors de la création du fichier : " + e.getMessage());
         }

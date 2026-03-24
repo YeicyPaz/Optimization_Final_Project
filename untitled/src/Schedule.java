@@ -26,16 +26,10 @@ public class Schedule {
             d.setDailyScore(0.0);
         }
         siteAlreadyVisited.clear();
-        for(Hotel hotel: hotelPath){
-            System.out.printf(hotel.id + "  ");
-        }
-        System.out.println(" "+ Instance.d);
 
         for (int jour = 0; jour < daysNb; jour++) {
             Hotel dep = hotelPath.get(jour);
-            System.out.println(hotelPath.get(jour).id);
             Hotel arr = hotelPath.get(jour + 1);
-            System.out.println(hotelPath.get(jour+1).id);
             greedyFillDay(jour, dep, arr);
 
         }
@@ -123,9 +117,6 @@ public class Schedule {
             distanceLeft = distanceLeft + distDirect - bestDetour;
             counterScore += best.score;
             current = best; // on se déplace vers le site visité
-            System.out.println("score counter: "+ counterScore);
-            System.out.println("Site "+best.id+" added to the day "+dayNb);
-            System.out.println("Distance traveled of "+ distanceTraveled);
         }
         day.setDailyDistance(distanceTraveled);
         day.setDailyScore(counterScore);

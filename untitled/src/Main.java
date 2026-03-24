@@ -1,61 +1,74 @@
 import java.io.IOException;
-import java.util.List;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        for (int num = 1; num <=36 ; num++) {
-            //automatiser la lecture de tous les fichiers d'instances
-            String doc = "untitled/instances/Inst" + num + ".txt";
+        int nbRuns = 10; // Nombre de lancements par instance
 
-            System.out.println(doc);
+        for (int num = 1; num <= 36; num++) {
+            String doc = "untitled/instances/Inst" + num + ".txt";
+            System.out.println("\n--- TRAITEMENT INSTANCE : " + num + " ---");
+
+            double totalScoreAllRuns = 0;
+            double bestScoreInstance = -1;
+            long totalTimeInstance = 0;
+            Schedule bestGlobalSchedule = null;
+
+            // On lit le fichier une seule fois par instance
             Instance.readFile(doc);
 
-            Schedule schedule1 = new Schedule();
+            for (int run = 1; run <= nbRuns; run++) {
+                long startTime = System.currentTimeMillis();
 
-            schedule1.chooseHotelPath();
+                // Initialisation d'un nouveau planning pour ce run
+                Schedule currentSchedule = new Schedule();
 
-            schedule1.buildGreedySolution(schedule1.bestHotelPath);
+                // 1. Construction de la solution initiale (Greedy)
+                currentSchedule.chooseHotelPath();
+                currentSchedule.buildGreedySolution(currentSchedule.bestHotelPath);
 
-            // Afficher la solution initiale (avant ALNS)
-            System.out.println("Solution initiale (après Greedy) :");
-            for (int dayNb = 0; dayNb < schedule1.daysNb; dayNb++) {
-                Day day = schedule1.travelDays.get(dayNb);
-                System.out.println("Jour " + dayNb + " :");
-                System.out.println("  Hôtel : " + schedule1.bestHotelPath.get(dayNb).id);
-                System.out.println("  Sites visités :");
+                // 2. Optimisation par ALNS
+                ALNS alns = new ALNS(currentSchedule, 5000, 0.998);
+                alns.runALNSForSites(5000, 0.15);
 
-//                for (int i = 0; i < day.chosenSites.size(); i++) {
-//                    System.out.println("    - " + day.chosenSites.get(i).id + " (score: " + day.chosenSites.get(i).score + ")");
-//                }
-                System.out.println("  Score journalier : " + day.dailyScore);
-                System.out.println("  Distance journalière : " + day.dailyDistance);
+                long endTime = System.currentTimeMillis();
+                long runTime = endTime - startTime;
+
+                // 3. Calcul du score propre (en utilisant ta méthode de nettoyage)
+                double currentScore = currentSchedule.getCleanTotalScore();
+
+                totalScoreAllRuns += currentScore;
+                totalTimeInstance += runTime;
+
+                // 4. On garde la trace du meilleur run pour cette instance
+                if (currentScore > bestScoreInstance) {
+                    bestScoreInstance = currentScore;
+                    // On clone ou on sauvegarde le meilleur schedule pour le fichier final
+                    bestGlobalSchedule = currentSchedule;
+                }
+
+                System.out.println("  Run " + run + " : Score = " + currentScore + " | Temps = " + runTime + "ms");
             }
-            System.out.println("Score total initial : " + schedule1.totalScore(schedule1.travelDays));
 
+            // --- BILAN INSTANCE ---
+            double averageScore = totalScoreAllRuns / nbRuns;
+            double averageTime = (double) totalTimeInstance / nbRuns;
 
-            ALNS alns = new ALNS(schedule1, 5000, 0.998);
-            alns.runALNSForSites(5000, 0.15);
+            System.out.println(">> Instance " + num + " TERMINEE");
+            System.out.println(">> Meilleur Score : " + bestScoreInstance);
+            System.out.println(">> Score Moyen     : " + averageScore);
+            System.out.println(">> Temps Moyen     : " + averageTime + "ms");
 
-            String instanceNum = doc.replaceAll("[^0-9]", "");
-
-            // gestion du fichier de sauvegarde
-            alns.saveSolution(instanceNum);
-
-            // Afficher la solution après ALNS
-            System.out.println("\nSolution après ALNS :");
-            for (int dayNb = 0; dayNb < schedule1.daysNb; dayNb++) {
-                Day day = schedule1.travelDays.get(dayNb);
-                System.out.println("Jour " + dayNb + " :");
-                System.out.println("  Hôtel : " + schedule1.bestHotelPath.get(dayNb).id);
-                System.out.println("  Sites visités :");
-
-//                for (TouristicSite site : day.chosenSites) {
-//                    System.out.println("    - " + site.id + " (score: " + site.score + ")");
-//                }
-                System.out.println("  Score journalier : " + day.dailyScore);
+            // Sauvegarde de la meilleure solution trouvée sur les 10 runs
+            if (bestGlobalSchedule != null) {
+                String instanceNum = String.valueOf(num);
+                // On s'assure que l'ALNS utilisé pour sauvegarder pointe sur le bon schedule
+                ALNS finalSaver = new ALNS(bestGlobalSchedule, 0, 0);
+                finalSaver.saveSolution(instanceNum);
             }
-            System.out.println("Score total après ALNS : " + schedule1.totalScore(schedule1.travelDays));
+
+            System.out.println("------------------------------------------");
         }
-
     }
 }
+
