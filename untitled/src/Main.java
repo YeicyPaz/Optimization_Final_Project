@@ -3,7 +3,7 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        for (int num = 14; num <=36 ; num++) {
+        for (int num = 1; num <=36 ; num++) {
             //automatiser la lecture de tous les fichiers d'instances
             String doc = "untitled/instances/Inst" + num + ".txt";
 
