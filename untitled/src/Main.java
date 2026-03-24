@@ -28,8 +28,11 @@ public class Main {
                 currentSchedule.buildGreedySolution(currentSchedule.bestHotelPath);
 
                 // 2. Optimisation par ALNS
-                ALNS alns = new ALNS(currentSchedule, 5000, 0.998);
-                alns.runALNSForSites(5000, 0.15);
+                ALNS alns = new ALNS(currentSchedule, 20000, 0.9996);
+                alns.runALNSForSites(20000, 0.15);
+                //pour les test (exécution rapide)
+                //ALNS alns = new ALNS(currentSchedule, 5000, 0.998);
+                //alns.runALNSForSites(5000, 0.15);
 
                 long endTime = System.currentTimeMillis();
                 long runTime = endTime - startTime;
