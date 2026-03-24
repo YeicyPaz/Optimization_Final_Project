@@ -3,10 +3,11 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        for (int num = 1; num <=36 ; num++) {
+        for (int num = 14; num <=36 ; num++) {
             //automatiser la lecture de tous les fichiers d'instances
             String doc = "untitled/instances/Inst" + num + ".txt";
 
+            System.out.println(doc);
             Instance.readFile(doc);
 
             Schedule schedule1 = new Schedule();
@@ -54,8 +55,6 @@ public class Main {
                 System.out.println("  Score journalier : " + day.dailyScore);
             }
             System.out.println("Score total après ALNS : " + schedule1.totalScore(schedule1.travelDays));
-        } else {
-            System.out.println("ERROR: we couldn't create a hotel path.");
         }
 
     }
