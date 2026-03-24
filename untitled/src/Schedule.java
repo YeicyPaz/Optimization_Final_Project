@@ -108,8 +108,8 @@ public class Schedule {
             double detourDistance = distToSite + distToHotel - distDirect;
             day.addChosenSite(best);
             System.out.println("the best site is --------------> "+best.id);
-            System.out.println("the best site to visit is "+ best.id + " with a score of "+ best.score + " and a detour of "+ bestDetour + " and a departure time of "+ bestDepartureTime);
-            System.out.println("the distance to the site is "+ distToSite + " and the distance to the hotel is "+ distToHotel + " and the direct distance is "+ distDirect);
+         //   System.out.println("the best site to visit is "+ best.id + " with a score of "+ best.score + " and a detour of "+ bestDetour + " and a departure time of "+ bestDepartureTime);
+           // System.out.println("the distance to the site is "+ distToSite + " and the distance to the hotel is "+ distToHotel + " and the direct distance is "+ distDirect);
             siteAlreadyVisited.add(best);
             if(distanceTraveled> 0){
                 distanceTraveled += bestDetour - distDirect;
@@ -127,6 +127,7 @@ public class Schedule {
         day.setDailyDistance(distanceTraveled);
         day.setDailyScore(counterScore);
         System.out.println("End of the day "+ dayNb);
+        System.out.println("--------------------------------------------------------------");
     }
 
     //heuristique pour les hotels
@@ -183,7 +184,7 @@ public class Schedule {
         System.out.println("---------------after sorting candidates for day --------------" );
         for (Score score: candidates
         ) {
-            System.out.println(" hotel " + score.site.id + " and his score with the heuristic: " + score.score1);
+    //        System.out.println(" hotel " + score.site.id + " and his score with the heuristic: " + score.score1);
         }
         bestHotelPath.add(firstHotel);
         System.out.println("the first hotel is added correctly: "+ firstHotel.id);
@@ -214,13 +215,13 @@ public class Schedule {
                         System.out.println("test hotel "+ bestHotelPath.get(j-1).id + " " + bestHotelPath.get(j).id);
                     }
                 }
-                System.out.println("---the best insertion index for the hotel "+ candidateHotel.id + " is: "+ bestInsertionIndex + " with a detour of "+ bestInsertionDetour);
+        //        System.out.println("---the best insertion index for the hotel "+ candidateHotel.id + " is: "+ bestInsertionIndex + " with a detour of "+ bestInsertionDetour);
                 // AU CAS OU: Si vous n’avez pas trouvé assez d’hôtels pour couvrir tous les jour:
                 if (bestInsertionIndex == -1) {
                     System.out.println("Hotel " + candidateHotel.id + " skipped - no valid position found because it exceeds daily distance.");
                     continue; // Saltamos este hotel y probamos con el siguiente candidato
                 }
-                System.out.println("---the index indicates that the hotel "+ candidateHotel.id + " will be inserted between the hotel of day "+ (bestInsertionIndex-1) + " and the hotel of day "+ bestInsertionIndex);
+         //       System.out.println("---the index indicates that the hotel "+ candidateHotel.id + " will be inserted between the hotel of day "+ (bestInsertionIndex-1) + " and the hotel of day "+ bestInsertionIndex);
 
                 bestHotelPath.add(bestInsertionIndex, candidateHotel);
                 dayIndex++;
