@@ -24,17 +24,17 @@ public class Main {
                 System.out.println("  Hôtel : " + schedule1.bestHotelPath.get(dayNb).id);
                 System.out.println("  Sites visités :");
 
-                for (int i = 0; i < day.chosenSites.size(); i++) {
-                    System.out.println("    - " + day.chosenSites.get(i).id + " (score: " + day.chosenSites.get(i).score + ")");
-                }
+//                for (int i = 0; i < day.chosenSites.size(); i++) {
+//                    System.out.println("    - " + day.chosenSites.get(i).id + " (score: " + day.chosenSites.get(i).score + ")");
+//                }
                 System.out.println("  Score journalier : " + day.dailyScore);
                 System.out.println("  Distance journalière : " + day.dailyDistance);
             }
             System.out.println("Score total initial : " + schedule1.totalScore(schedule1.travelDays));
 
 
-            ALNS alns = new ALNS(schedule1, 2000, 0.9); // 100 itérations, alpha = 0.5
-            alns.runALNSForSites(2000, 0.3); // 100 itérations ALNS, reactionFactor = 0.3
+            ALNS alns = new ALNS(schedule1, 5000, 0.998);
+            alns.runALNSForSites(5000, 0.15);
 
             String instanceNum = doc.replaceAll("[^0-9]", "");
 
@@ -49,9 +49,9 @@ public class Main {
                 System.out.println("  Hôtel : " + schedule1.bestHotelPath.get(dayNb).id);
                 System.out.println("  Sites visités :");
 
-                for (TouristicSite site : day.chosenSites) {
-                    System.out.println("    - " + site.id + " (score: " + site.score + ")");
-                }
+//                for (TouristicSite site : day.chosenSites) {
+//                    System.out.println("    - " + site.id + " (score: " + site.score + ")");
+//                }
                 System.out.println("  Score journalier : " + day.dailyScore);
             }
             System.out.println("Score total après ALNS : " + schedule1.totalScore(schedule1.travelDays));

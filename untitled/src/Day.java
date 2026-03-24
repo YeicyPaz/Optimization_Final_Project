@@ -62,8 +62,36 @@ public class Day { //un voyage par jour
         return dailyDistance;
     }
 
-    public double getDailyScore() {
-        return dailyScore;
+    public void updateScoreFromList() {
+        double total = 0;
+        for (TouristicSite s : this.chosenSites) {
+            total += s.score;
+        }
+        this.dailyScore = total;
+    }
+    public void refreshStats(int dayIdx, Schedule schedule) {
+        // recalcul du Score
+        double totalScore = 0;
+        for (TouristicSite s : this.chosenSites) {
+            totalScore += s.score;
+        }
+        this.dailyScore = totalScore;
+
+        // recalcul de la Distance (Temps) avec horaires
+        Hotel dep = schedule.bestHotelPath.get(dayIdx);
+        Hotel arr = schedule.bestHotelPath.get(dayIdx + 1);
+
+        double currentTime = 0;
+        Site prev = dep;
+        for (TouristicSite current : this.chosenSites) {
+            currentTime += Instance.getDistMatrix(prev, current);
+            if (currentTime < current.openingTime) {
+                currentTime = current.openingTime;
+            }
+            prev = current;
+        }
+        currentTime += Instance.getDistMatrix(prev, arr);
+        this.dailyDistance = currentTime;
     }
 
     public void setDailyDistance(double dailyDistance) {
@@ -81,13 +109,11 @@ public class Day { //un voyage par jour
         return chosenSites.get(chosenSites.size() - 1); // Retourner le dernier site visité
     }
 
-
-
-    public void sitesToString() {
-        for (Site site: chosenSites
-             ) {
-            System.out.println(site.id);
+    public Site getLastSiteOrHotel(Hotel hotelDep) {
+        if (this.chosenSites == null || this.chosenSites.isEmpty()) {
+            return hotelDep;
         }
+        return this.chosenSites.get(this.chosenSites.size() - 1);
     }
 
     //-------------------VNS------------------------

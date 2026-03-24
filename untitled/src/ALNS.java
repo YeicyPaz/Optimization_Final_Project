@@ -32,25 +32,20 @@ public class ALNS {
         String fileName = "Instance" + instanceNumber + ".sol";
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            // 1. Écrire la valeur totale de la solution (le score global)
             double totalScore = schedule.totalScore(schedule.travelDays);
             writer.write(String.valueOf(totalScore));
             writer.newLine();
 
-            // 2. Parcourir chaque jour pour écrire le chemin
-            for (int i = 0; i < schedule.daysNb; i++) {
+             for (int i = 0; i < schedule.daysNb; i++) {
                 StringBuilder line = new StringBuilder();
                 Day day = schedule.travelDays.get(i);
 
-                // Hotel de départ du jour
                 line.append(schedule.bestHotelPath.get(i).id);
 
-                // Sites visités
                 for (TouristicSite site : day.chosenSites) {
                     line.append(" ").append(site.id);
                 }
 
-                // Hotel de fin du jour
                 line.append(" ").append(schedule.bestHotelPath.get(i + 1).id);
 
                 writer.write(line.toString());
@@ -64,6 +59,77 @@ public class ALNS {
         }
     }
 
+    private void relocateOperator(ArrayList<Day> days, Schedule schedule) {
+        for (Day day : days) {
+            if (day.chosenSites.size() < 2) continue;
+
+            for (int i = 0; i < day.chosenSites.size(); i++) {
+                TouristicSite siteToMove = day.chosenSites.remove(i);
+                double bestGain = Double.MAX_VALUE;
+                int bestPos = -1;
+
+                // On cherche la meilleure nouvelle position dans le même jour
+                for (int j = 0; j <= day.chosenSites.size(); j++) {
+                    // Simulation de l'insertion (utiliser ta logique de calcul de temps)
+                    double newDist = simulateInsertionDist(day, siteToMove, j, schedule);
+                    if (newDist < bestGain && newDist <= Instance.tD[day.index]) {
+                        bestGain = newDist;
+                        bestPos = j;
+                    }
+                }
+
+                if (bestPos != -1) {
+                    day.chosenSites.add(bestPos, siteToMove);
+                    day.dailyDistance = recalculateRouteTime(day, schedule);
+                } else {
+                    day.chosenSites.add(i, siteToMove); // Remettre à sa place si rien de mieux
+                }
+            }
+        }
+    }
+
+    /**
+     * Simule la distance (durée totale) d'un jour si on insérait un site à une position donnée.
+     * @return La nouvelle dailyDistance (incluant les attentes) ou Double.MAX_VALUE si invalide.
+     */
+    private double simulateInsertionDist(Day day, TouristicSite candidate, int position, Schedule schedule) {
+        Hotel hotelDep = schedule.bestHotelPath.get(day.index);
+        Hotel hotelArr = schedule.bestHotelPath.get(day.index + 1);
+
+        // Création d'une liste temporaire pour la simulation
+        List<TouristicSite> tempSites = new ArrayList<>(day.chosenSites);
+        tempSites.add(position, candidate);
+
+        double currentTime = 0;
+        Site prev = hotelDep;
+
+        // Parcours de la nouvelle séquence
+        for (TouristicSite current : tempSites) {
+            // Trajet de prev vers le site actuel
+            currentTime += Instance.getDistMatrix(prev, current);
+
+            // Vérification de la fermeture (Fenêtre horaire)
+            if (currentTime > current.closingTime) {
+                return Double.MAX_VALUE; // Invalide
+            }
+
+            // Prise en compte de l'attente si on arrive avant l'ouverture
+            if (currentTime < current.openingTime) {
+                currentTime = current.openingTime;
+            }
+            prev = current;
+        }
+
+        // Trajet final vers l'hôtel d'arrivée
+        currentTime += Instance.getDistMatrix(prev, hotelArr);
+
+        // Vérification du budget temps/distance total du jour
+        if (currentTime > Instance.tD[day.index]) {
+            return Double.MAX_VALUE; // Dépasse le budget du jour
+        }
+
+        return currentTime;
+    }
     private void destroyRandomSite(Day day, Schedule schedule) {
         if (!day.chosenSites.isEmpty()) {
             Random random = new Random();
@@ -120,6 +186,7 @@ public class ALNS {
         double[] destroyWeights = {1.0, 1.0, 1.0};
         double[] repairWeights  = {1.0, 1.0, 1.0};
 
+        int destroyedHotel = -1;
         ArrayList<Day> currentDays = cloneDays(schedule.travelDays);
         double currentScore = schedule.totalScore(currentDays);
 
@@ -143,8 +210,13 @@ public class ALNS {
                     destroyWorstRatioSites(currentDays, schedule);
                     break;
                 case 2:
-                    //destroyMassiveSites(currentDays, schedule);
+                    destroyedHotel = destroyRandomHotel(schedule);
                     break;
+            }
+
+            // Dans la phase de réparation de runALNSForSites
+            if (schedule.bestHotelPath.size() < schedule.daysNb + 1) {
+                repairHotelRandomly(schedule, destroyedHotel);
             }
 
             schedule.siteAlreadyVisited = rebuildVisited(currentDays);
@@ -166,6 +238,11 @@ public class ALNS {
                                 schedule.bestHotelPath.get(dayNb),
                                 schedule.bestHotelPath.get(dayNb + 1));
                     break;
+            }
+
+            relocateInterDays(currentDays, schedule);
+            for(int d=0; d < currentDays.size(); d++) {
+                currentDays.get(d).refreshStats(d, schedule);
             }
 
             double newScore = schedule.totalScore(currentDays);
@@ -207,8 +284,51 @@ public class ALNS {
         }
 
         schedule.travelDays = cloneDays(bestDays);
+        schedule.getCleanTotalScore();
         schedule.siteAlreadyVisited = rebuildVisited(bestDays);
     }
+
+    private int destroyRandomHotel(Schedule schedule) {
+        if (schedule.bestHotelPath.size() <= 2) return -1;
+
+        Random rand = new Random();
+        int hotelIdx = rand.nextInt(schedule.bestHotelPath.size() - 2) + 1;
+
+        schedule.bestHotelPath.remove(hotelIdx);
+        return hotelIdx;
+    }
+
+    private void repairHotelRandomly(Schedule schedule, int destroyedHotelIndex ) {
+        if (destroyedHotelIndex == -1) return;
+
+        Hotel hPrev = schedule.bestHotelPath.get(destroyedHotelIndex - 1);
+        Hotel hNext = schedule.bestHotelPath.get(destroyedHotelIndex);
+
+        // trouver les hôtels valides à insérer entre hPrev et hNext
+        List<Hotel> validHotels = new ArrayList<>();
+        for (Hotel h : Instance.hotels) {
+            double d1 = Instance.getDistMatrix(hPrev, h);
+            double d2 = Instance.getDistMatrix(h, hNext);
+
+            // Si l'hôtel est physiquement accessible dans les budgets temps
+            if (d1 < Instance.tD[destroyedHotelIndex - 1] && d2 < Instance.tD[destroyedHotelIndex]) {
+                validHotels.add(h);
+            }
+        }
+
+        //choisir un hotel au hasard parmi les valides (diversification)
+        if (!validHotels.isEmpty()) {
+            Random rand = new Random();
+            Hotel randomHotel = validHotels.get(rand.nextInt(validHotels.size()));
+            schedule.bestHotelPath.add(destroyedHotelIndex, randomHotel);
+        } else {
+            // Backup : remettre l'hôtel de fin pour ne pas casser la structure
+            schedule.bestHotelPath.add(destroyedHotelIndex, Instance.getLastHotel());
+        }
+
+        destroyedHotelIndex = -1; // Reset
+    }
+
     private ArrayList<Day> cloneDays(ArrayList<Day> days) {
         ArrayList<Day> clonedDays = new ArrayList<>();
         for (Day day : days) {
@@ -222,7 +342,7 @@ public class ALNS {
         return clonedDays;
     }
 
-    // Reconstruire siteAlreadyVisited à partir d'un clone de days
+    // reconstruire siteAlreadyVisited à partir d'un clone de days
     private Set<TouristicSite> rebuildVisited(ArrayList<Day> days) {
         Set<TouristicSite> visited = new HashSet<>();
         for (Day day : days) {
@@ -232,11 +352,36 @@ public class ALNS {
     }
 
 
+    private void relocateInterDays(ArrayList<Day> days, Schedule schedule) {
+        for (int d = 0; d < days.size() - 1; d++) { // pour chaque paire de jours consécutifs
+            Day day1 = days.get(d);
+            Day day2 = days.get(d+1);
+
+            for (int i = 0; i < day1.chosenSites.size(); i++) {
+                TouristicSite site = day1.chosenSites.get(i);
+
+                //on essaie de le mettre dans le jour suivant
+                for (int pos = 0; pos <= day2.chosenSites.size(); pos++) {
+                    double newDistJ2 = simulateInsertionDist(day2, site, pos, schedule);
+
+                    if (newDistJ2 != Double.MAX_VALUE) { // Si ça rentre dans J2
+                        day1.chosenSites.remove(i);
+                        day2.chosenSites.add(pos, site);
+
+                        // Mise à jour des distances
+                        day1.dailyDistance = recalculateRouteTime(day1, schedule);
+                        day2.dailyDistance = recalculateRouteTime(day2, schedule);
+                        return; // On a fait un transfert, on sort pour cette itération
+                    }
+                }
+            }
+        }
+    }
     private void repairWithRegret(Schedule schedule, Day day, Hotel hotelDep, Hotel hotelArr) {
         int dayNb = day.index;
         Site lastSite = day.getLastSite();
 
-        // calcul du regret pour chaque site à la fin de la journée (en partant de l'hôtel d'arrivée)
+        // calcul du regret pour chaque site à la fin de la journée (en partant de l'hotel d'arrivée)
 
         if (lastSite == null) {
             lastSite = hotelDep;
@@ -400,7 +545,7 @@ public class ALNS {
 
     private void updateWeights(double[] weights, int methodIndex, double scoreImprovement, double reactionFactor) {
         if (scoreImprovement > 0) {
-            weights[methodIndex] *= (1 + reactionFactor);
+            weights[methodIndex] *= (1 + reactionFactor); // Augmente le poids de la méthode si elle a contribué à une amélioration
         } else {
             weights[methodIndex] *= (1 - reactionFactor);
         }
@@ -570,7 +715,6 @@ public class ALNS {
     private double recalculateRouteTime(Day day, Schedule schedule) {
         return calculateTimeForList(day.chosenSites, day.index, schedule);
     }
-
     private double calculateTimeForList(ArrayList<TouristicSite> sites, int dayIdx, Schedule schedule) {
         Hotel dep = schedule.bestHotelPath.get(dayIdx);
         Hotel arr = schedule.bestHotelPath.get(dayIdx + 1);

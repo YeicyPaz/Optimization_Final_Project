@@ -1,3 +1,4 @@
+
 import java.util.*;
 public class Schedule {
 
@@ -109,9 +110,9 @@ public class Schedule {
             day.addChosenSite(best);
             day.departureTimes.add(bestDepartureTime);
             day.arrivalTimes.add(bestArrivalTime);
-            System.out.println("the best site is --------------> "+best.id);
-            System.out.println("the best site to visit is "+ best.id + " with a score of "+ best.score + " and a detour of "+ bestDetour + " and a departure time of "+ bestDepartureTime);
-            System.out.println("the distance to the site is "+ distToSite + " and the distance to the hotel is "+ distToHotel + " and the direct distance is "+ distDirect);
+//            System.out.println("the best site is --------------> "+best.id);
+//            System.out.println("the best site to visit is "+ best.id + " with a score of "+ best.score + " and a detour of "+ bestDetour + " and a departure time of "+ bestDepartureTime);
+//            System.out.println("the distance to the site is "+ distToSite + " and the distance to the hotel is "+ distToHotel + " and the direct distance is "+ distDirect);
             siteAlreadyVisited.add(best);
             if(distanceTraveled> 0){
                 distanceTraveled += bestDetour - distDirect;
@@ -161,17 +162,15 @@ public class Schedule {
         }
         this.selectBestHotel(hotelsScores, firstHotel, lastHotel);
 
-        // AU CAS OU: Si vous n’avez pas trouvé assez d’hôtels pour couvrir tous les jour:
-        // ==========================================
         while (bestHotelPath.size() < Instance.d + 1) {
             // Rellenamos repitiendo el último hotel antes del final
             bestHotelPath.add(bestHotelPath.size() - 1, Instance.getLastHotel());
-            System.out.println("Emergency padding: Added " + Instance.getLastHotel().id + " to complete the days.");
+            //System.out.println("Emergency padding: Added " + Instance.getLastHotel().id + " to complete the days.");
         }
 
     }
 
-    private void selectBestHotel(List<Score> hotelScores, Hotel firstHotel, Hotel lastHotel) {
+    public void selectBestHotel(List<Score> hotelScores, Hotel firstHotel, Hotel lastHotel) {
         List<Score> candidates = new ArrayList<>();
         //création d'une liste de candidats [Hotel,Score]
         for (int i = 0; i < hotelScores.size(); i++) {
@@ -226,7 +225,7 @@ public class Schedule {
             if (bestInsertionIndex != -1) {
                 bestHotelPath.add(bestInsertionIndex, candidateHotel);
                 intermediatesAdded++;
-                System.out.println("Hôtel " + candidateHotel.id + " inséré en position " + bestInsertionIndex);
+                //System.out.println("Hôtel " + candidateHotel.id + " inséré en position " + bestInsertionIndex);
             }
         }
 
@@ -292,12 +291,24 @@ public class Schedule {
                 (weightDistance * normalizedDistance);
     }
 
+    public double getCleanTotalScore() {
+        double globalScore = 0;
+        this.siteAlreadyVisited.clear(); // On reconstruit proprement le Set
 
+        for (int i = 0; i < travelDays.size(); i++) {
+            Day day = travelDays.get(i);
+            day.refreshStats(i, this); // Appelle la méthode créée ci-dessus
+
+            globalScore += day.dailyScore;
+            this.siteAlreadyVisited.addAll(day.chosenSites);
+        }
+        return globalScore;
+    }
     /*
     * Permet de savoir à quelle distance se trouve un hôtel par rapport à la ligne droite idéale entre l’hôtel de départ (start) et l’hôtel d’arrivée (end)
     *  Cela permet d’éviter de choisir des hôtels trop éloignés de ce chemin idéal
      */
-    private double calculateDistanceFromSegment(Hotel hotel, Hotel start, Hotel end) {
+    public double calculateDistanceFromSegment(Hotel hotel, Hotel start, Hotel end) {
         // Coordonnées des hôtels (à adapter selon ta structure de données)
         double x = hotel.getCoordinates().x, y = hotel.getCoordinates().y;
         double x1 = start.getCoordinates().x, y1 = start.getCoordinates().y;
@@ -347,6 +358,7 @@ public class Schedule {
 
         return clonedSchedule;
     }
+
 
  //   ----------------------METODE EVALUATE ROUTES----------------------------
     //Retourn un array: [0] = isValid (1.0 si est valid, 0.0 et non), [1] = time/total distance, [2] = score total
