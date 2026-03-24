@@ -59,21 +59,8 @@ public class Day { //un voyage par jour
     }
 
     public double getDailyDistance() {
-        double counter = 0.0;
-        /*for (int i = 0; i < chosenSites.size(); i++) {
-            if(i == 0){
-                System.out.println("index day "+this.index+"l'hotel choisi " +this.chosenHotel.id);
-                counter += Instance.getDistMatrix(Instance.hotels.get(index),chosenSites.get(0));
-            } else if (i == chosenSites.size() - 1) {
-                counter += Instance.getDistMatrix(chosenSites.get(i),Instance.hotels.get(index));
-            } else{
-                counter += Instance.getDistMatrix(chosenSites.get(i-1), chosenSites.get(i));
-            }
-
-        }*/return counter;
-
+        return dailyDistance;
     }
-
 
     public double getDailyScore() {
         return dailyScore;
@@ -102,4 +89,19 @@ public class Day { //un voyage par jour
             System.out.println(site.id);
         }
     }
+
+    //-------------------VNS------------------------
+    //on fait la clonation de la lista pour eviter de modifier la list original et que le resultat soit pire
+    public Day cloneDay() {
+        Day clonedDay = new Day(this.index);
+        clonedDay.setDailyDistance(this.dailyDistance);
+        clonedDay.setDailyScore(this.dailyScore);
+        clonedDay.setChosenHotel(this.chosenHotel);
+
+        // on fait les copies des list des sites, mais on maintient les reference des object originales
+        // les propietés d'un site ne changent pas pendant son execution
+        clonedDay.chosenSites = new ArrayList<>(this.chosenSites);
+        return clonedDay;
+    }
+
 }

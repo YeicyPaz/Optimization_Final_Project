@@ -54,9 +54,9 @@ public class Main {
                 System.out.println("  Score journalier : " + day.dailyScore);
             }
             System.out.println("Score total après ALNS : " + schedule1.totalScore(schedule1.travelDays));
+        } else {
+            System.out.println("ERROR: we couldn't create a hotel path.");
         }
 
     }
-
-
 }
