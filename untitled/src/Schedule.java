@@ -154,7 +154,7 @@ public class Schedule {
         this.selectBestHotel(hotelsScores, firstHotel, lastHotel);
 
         while (bestHotelPath.size() < Instance.d + 1) {
-            // Rellenamos repitiendo el último hotel antes del final
+
             bestHotelPath.add(bestHotelPath.size() - 1, Instance.getLastHotel());
             //System.out.println("Emergency padding: Added " + Instance.getLastHotel().id + " to complete the days.");
         }

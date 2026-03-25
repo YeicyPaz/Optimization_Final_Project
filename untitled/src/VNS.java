@@ -325,7 +325,7 @@ public class VNS {
                     day2.setDailyDistance(res2[1]);
                     day2.setDailyScore(res2[2]);
 
-                    // Remarque: Nous n’avons pas besoin de mettre à jour 'siteAlreadyVisited' parce que les deux sites
+
                     // étaient déjà visités, ils ont juste changé de jour.
                 }
             }
@@ -338,10 +338,10 @@ public class VNS {
             int dayIdx = rand.nextInt(currentSchedule.daysNb);
             Day randomDay = currentSchedule.travelDays.get(dayIdx);
 
-            // si le jour a 2 sites ou moins, il ne vaut pas la peine de le détruire
+            // si le jour a 2 sites ou moins, on le detruit pas
             if (randomDay.chosenSites.size() <= 2) return;
 
-            // on decide le nombre de sites à supprimer (entre 2 et 4 sites)
+            // le nombre de sites à supprimer (entre 2 et 4 sites)
             int sitesToRemove = 2 + rand.nextInt(3);
             // Nos aseguramos de no borrar más sitios de los que hay
             sitesToRemove = Math.min(sitesToRemove, randomDay.chosenSites.size());
@@ -372,7 +372,7 @@ public class VNS {
 
 
             //le VNS principal appellera applyLocalSearch() juste après avoir quitté le shake.
-            //la recherche Locale verra l’énorme trou et le remplira intelligemment.
+            //la recherche Locale verra l’énorme trou et le remplira
         }
     }
 }
