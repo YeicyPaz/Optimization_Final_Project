@@ -14,6 +14,9 @@ public class Main {
             long totalTimeInstance = 0;
             Schedule bestGlobalSchedule = null;
 
+            double bestGreedyInstance = -1;
+            double bestVNSInstance = -1;
+
             // On lit le fichier une seule fois par instance
             Instance.readFile(doc);
 
@@ -27,9 +30,24 @@ public class Main {
                 currentSchedule.chooseHotelPath();
                 currentSchedule.buildGreedySolution(currentSchedule.bestHotelPath);
 
+                //garde le record du greedy
+                double currentGreedyScore = currentSchedule.getCleanTotalScore(); // o totalScore(currentSchedule.travelDays)
+                if (currentGreedyScore > bestGreedyInstance) {
+                    bestGreedyInstance = currentGreedyScore;
+                }
+
+                VNS vnsOptimizer = new VNS();
+                vnsOptimizer.executeVNS(currentSchedule, currentSchedule.bestHotelPath, 4000);
+
+                //garde le record du VNS
+                double currentVnsScore = vnsOptimizer.bestGlobalScore;
+                if (currentVnsScore > bestVNSInstance) {
+                    bestVNSInstance = currentVnsScore;
+                }
+
                 // 2. Optimisation par ALNS
-                ALNS alns = new ALNS(currentSchedule, 20000, 0.9996);
-                alns.runALNSForSites(20000, 0.15);
+                ALNS alns = new ALNS(currentSchedule, 5000, 0.998);
+                alns.runALNSForSites(5000, 0.15);
                 //pour les test (exécution rapide)
                 //ALNS alns = new ALNS(currentSchedule, 5000, 0.998);
                 //alns.runALNSForSites(5000, 0.15);
@@ -58,7 +76,9 @@ public class Main {
             double averageTime = (double) totalTimeInstance / nbRuns;
 
             System.out.println(">> Instance " + num + " TERMINEE");
-            System.out.println(">> Meilleur Score : " + bestScoreInstance);
+            System.out.println(">> Meilleur Score GREEDY : " + bestGreedyInstance);
+            System.out.println(">> Meilleur Score VNS    : " + bestVNSInstance);
+            System.out.println(">> Meilleur Score ALNS: " + bestScoreInstance);
             System.out.println(">> Score Moyen     : " + averageScore);
             System.out.println(">> Temps Moyen     : " + averageTime + "ms");
 

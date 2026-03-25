@@ -135,9 +135,9 @@ public class VNS {
     //--------------VNS SOLUTION------------------------
     //----------------------------------------------------------------
     //-----------------------------EXECUTION RUN VNS------------------
-    public void executeVNS(Schedule initialSchedule, List<Hotel> currentHotelPath) {
+    public void executeVNS(Schedule initialSchedule, List<Hotel> currentHotelPath, long MaxDuration) {
         long startTime = System.currentTimeMillis();
-        long maxDuration = 15 * 1000; // seconds in miliseconds
+        long maxDuration = 4 * 1000; // seconds in miliseconds
 
         //on utilise la solution greedy
 
@@ -150,11 +150,11 @@ public class VNS {
 
         int k_max = 4; //on va utiliser 3 neighbohood differents
 
-        System.out.println("-----------------------------------------------");
-        System.out.println("Starting VNS with base SCORE = " + this.bestGlobalScore);
+       // System.out.println("-----------------------------------------------");
+      //  System.out.println("Starting VNS with base SCORE = " + this.bestGlobalScore);
 
         //creation d'un bucle de temps pour l'impresion  de resultat(1 second=1000 milisecond)
-        while ((System.currentTimeMillis() - startTime) < (maxDuration - 1000)) {
+        while ((System.currentTimeMillis() - startTime) < (maxDuration)) {
             int k=1; //premier shake de neighborhood
 
             while (k <= k_max && (System.currentTimeMillis() - startTime) < (maxDuration - 1000)) {
@@ -181,7 +181,7 @@ public class VNS {
                     if (newScore > this.bestGlobalScore) {
                         this.bestGlobalSchedule = currentSchedule.cloneSchedule();
                         this.bestGlobalScore = newScore;
-                        System.out.println("NOUVELLE Score TROUVÉ: " + this.bestGlobalScore);
+                      //  System.out.println("NOUVELLE Score TROUVÉ: " + this.bestGlobalScore);
                     }
                 } else {
                     k++; //on n'a pas amelioré, alors on fait une soute plus grand
