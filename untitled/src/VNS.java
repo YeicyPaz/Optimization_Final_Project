@@ -94,7 +94,7 @@ public class VNS {
                     TouristicSite visitedSite = (TouristicSite) day.chosenSites.get(i);
 
                     for (TouristicSite candidateSite : unvisited) {
-                        // on a essayé le changement que si le candidat donne plus de points, ou s’il donne les mêmes points mais on soupçonne qu’il économise la distance.
+                        // on a essayé le changement que si le candidat donne plus de points, ou s’il donne les mêmes points mais qu’il économise la distance.
                         if (candidateSite.score < visitedSite.score) continue;
 
                         List<TouristicSite> testSequence = new ArrayList<>();
