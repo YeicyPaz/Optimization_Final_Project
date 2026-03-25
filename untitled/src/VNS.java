@@ -148,7 +148,7 @@ public class VNS {
         this.bestGlobalSchedule = currentSchedule.cloneSchedule();
         this.bestGlobalScore = currentSchedule.totalScore(bestGlobalSchedule.travelDays);
 
-        int k_max = 4; //on va utiliser 3 neighbohood differents
+        int k_max = 3; //on va utiliser 3 neighbohood differents
 
         System.out.println("-----------------------------------------------");
         System.out.println("Starting VNS with base SCORE = " + this.bestGlobalScore);
