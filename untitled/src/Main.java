@@ -23,11 +23,11 @@ public class Main {
                 // Initialisation d'un nouveau planning pour ce run
                 Schedule currentSchedule = new Schedule();
 
-                // 1. Construction de la solution initiale (Greedy)
+                // construction de la solution initiale (Greedy)
                 currentSchedule.chooseHotelPath();
                 currentSchedule.buildGreedySolution(currentSchedule.bestHotelPath);
 
-                // 2. Optimisation par ALNS
+                //optimisation par ALNS
                 ALNS alns = new ALNS(currentSchedule, 20000, 0.9996);
                 alns.runALNSForSites(20000, 0.15);
                 //pour les test (exécution rapide)
@@ -37,13 +37,13 @@ public class Main {
                 long endTime = System.currentTimeMillis();
                 long runTime = endTime - startTime;
 
-                // 3. Calcul du score propre (en utilisant ta méthode de nettoyage)
+                // calcul du score propre (en utilisant ta méthode de nettoyage)
                 double currentScore = currentSchedule.getCleanTotalScore();
 
                 totalScoreAllRuns += currentScore;
                 totalTimeInstance += runTime;
 
-                // 4. On garde la trace du meilleur run pour cette instance
+                // on garde la trace du meilleur run pour cette instance
                 if (currentScore > bestScoreInstance) {
                     bestScoreInstance = currentScore;
                     // On clone ou on sauvegarde le meilleur schedule pour le fichier final
